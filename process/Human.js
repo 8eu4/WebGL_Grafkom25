@@ -11,13 +11,19 @@ export class HumanCharacter extends BaseCharacter {
     constructor() {
         super();
 
-        //MESH
+        // TODO MESH
+        // disini membuat mesh solid danatau wireframe
+        // INGAT di akhir parameter ada cutOptions = null, deferBuffer = true secara default (tidak di cut dan tidak perlu di buffer)
+        // Penjelasan BUFFER: anggep aja hasil akhir/final dari objek tersebut, jika di buffer/deferBuffer = False. 
+        // DEFERBUFFER: TRUE JIKA PAKAI CSG (Mau beberapa mesh di union / intersect / subtract)
+        // generator, { params = null, solid = true, wire = true , cutOptions = null, deferBuffer = true}
+
         this.meshes = {
             ell: createMesh(MeshUtils.generateEllipsoid, { params: [0.8, 0.5, 0.6, 40, 60], options: { wire: false }, deferBuffer: true }),
             cube: createMesh(MeshUtils.generateBox, { params: [1, 1, 1], deferBuffer: true }),
         }
 
-        // #1 CSG Apply Mesh dulu
+        // NOTE #1 CSG Apply Mesh dulu, jika CSG (subtract/union/intersect). Ingat deferBuffer harus true
         const cubeMesh = applyTransformToMesh(this.meshes.cube.solid.mesh, {
             translate: [0, 1, 0],
             rotate: [
@@ -62,7 +68,7 @@ export class HumanCharacter extends BaseCharacter {
             holeOnCubeMesh: MeshUtils.createMeshBuffers(GL, holeOnCubeMesh, attribs)
 
         }
-        // #7 Buat Bone
+        // TODO #7 Buat Bone
         // build skeleton (hip/root -> spine -> chest -> neck -> head) --- HIERARKI
         //
         //  hip
@@ -103,7 +109,7 @@ export class HumanCharacter extends BaseCharacter {
 
         this.updateWorld();
 
-        // #8 Create Model Matrix 
+        // TODO #8 Create Model Matrix 
         // ALIGN MESH dengan Bone
         this.offsetMesh = {
             bodyOffset: createModelMatrix({ translate: [0, 0.8, 0] }),   // put body mesh above hip
@@ -119,7 +125,7 @@ export class HumanCharacter extends BaseCharacter {
     }
 
     animate(time) {
-
+        // TODO
         const t = time * 0.001;
 
         // Slight bounce of hip
@@ -152,29 +158,30 @@ export class HumanCharacter extends BaseCharacter {
         // legs swing (hip)
         this.skeleton.leftUpperLeg.setLocalSpec({
             translate: [-0.3, 0, 0],
-            rotate: [{ axis: "x", angle: Math.cos(t)/2 }]
+            rotate: [{ axis: "x", angle: Math.cos(t) / 2 }]
         });
         this.skeleton.rightUpperLeg.setLocalSpec({
             translate: [0.3, 0, 0],
-            rotate: [{ axis: "x", angle: -Math.cos(t)/2 }]
+            rotate: [{ axis: "x", angle: -Math.cos(t) / 2 }]
         });
 
         // knees bend depending on swing
         this.skeleton.leftLowerLeg.setLocalSpec({
             translate: [0, -1.0, 0],
-            rotate: [{ axis: "x", angle: Math.max(0, -Math.cos(t)/2) * 0.8 }]
+            rotate: [{ axis: "x", angle: Math.max(0, -Math.cos(t) / 2) * 0.8 }]
         });
         this.skeleton.rightLowerLeg.setLocalSpec({
             translate: [0, -1.0, 0],
-            rotate: [{ axis: "x", angle: Math.max(0, -Math.cos(t)/2) * 0.8 }]
+            rotate: [{ axis: "x", angle: Math.max(0, -Math.cos(t) / 2) * 0.8 }]
         });
 
         this.updateWorld();
     }
 
     drawObject() {
-        // NOTE madeModel params -> bone, offset
-        // NOTE drawObject params -> buffers, model, color, mode
+        // TODO
+        // madeModel params -> bone, offset
+        // drawObject params -> buffers, model, color, mode
 
         //HUMAN
         drawObject(this.meshes.bodyMesh.solid.buffers, makeModel(this.skeleton.hip, this.offsetMesh.bodyOffset), [0.2, 0.6, 0.9], GL.TRIANGLES);

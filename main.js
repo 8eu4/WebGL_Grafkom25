@@ -35,16 +35,12 @@ function main() {
     otherFactor();
 
     // ---------- Mesh, Transform, Bone, Align mesh,  ----------
-    // TODO disini membuat mesh solid danatau wireframe
-    // INGAT di akhir parameter ada cutOptions = null, deferBuffer = true secara default (tidak di cut dan tidak perlu di buffer)
-    // Penjelasan BUFFER: anggep aja hasil akhir/final dari objek tersebut, jika di buffer/deferBuffer = False. 
-    // DEFERBUFFER: TRUE JIKA PAKAI CSG (Mau beberapa mesh di union / intersect / subtract)
-    // NOTE generator, { params = null, solid = true, wire = true , cutOptions = null, deferBuffer = true}
 
-
-    // Make HUMAN Object
+    // TODO Make HUMAN Object
     const human = new HumanCharacter();
 
+    // Make other object here!
+    //..
 
     // ---------- Render Loop ----------
     GL.clearColor(0.0, 0.0, 0.0, 0.0);
@@ -56,19 +52,25 @@ function main() {
         cameraUpdate();
 
 
-        // -------------- update bone localSpecs (example: walking) ----------------
+        // -------------- update bone localSpecs ----------------
+        // TODO
         // Animate HUMAN
         human.animate(time)
 
+        // Animate here!
+        //..
+
         // ------------------------ Draw Object -------------
-        // ---------------- Draw meshes attached to bones ----------------
-        // TODO disini menggambar objek
+        // TODO
         // Draw HUMAN
         human.drawObject();
 
+        // Draw here!
+        //..
 
-        // REVIEW --------------- Draw bone helpers overlay (so they are visible) ----------------
-        human.root.drawHelper(); // recursively draws children helpers as well
+
+        // REVIEW --------------- Draw bone ----------------
+        human.root.drawHelper(); // dibuang jika tidak mau lihat bone
 
         GL.flush();
         requestAnimationFrame(animate);
