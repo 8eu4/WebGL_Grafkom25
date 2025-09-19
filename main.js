@@ -1,9 +1,5 @@
 import { HumanCharacter } from "./process/Human.js";
 
-import { initUI } from './animate/uiControls.js';
-import { PoseManager } from "./animate/poseManager.js";
-import { TimelineAnimator } from "./animate/timelineAnim.js";
-
 
 // NOTE GLOBAL VARIABLE KE SELURUH FILE
 export let GL = null;
@@ -54,28 +50,15 @@ function main() {
     GL.clearColor(0.0, 0.0, 0.0, 0.0);
     GL.enable(GL.DEPTH_TEST);
 
-    const animator = new TimelineAnimator(human);
-    initUI(human, animator);
-    window.__APP_ANIMATOR__ = animator; // optional global ref
-
-
-    let lastTime = 0;
 
     function animate(time) {
         // CAMERA
         cameraUpdate();
 
-        if (animator.isPlaying) {
-            animator.update();
-        } else {
-            human.animate(time);
-            human.updateWorld();
-        }
-
 
         // -------------- update bone localSpecs (example: walking) ----------------
         // Animate HUMAN
-
+        human.animate(time)
 
         // ------------------------ Draw Object -------------
         // ---------------- Draw meshes attached to bones ----------------
@@ -88,7 +71,6 @@ function main() {
         human.root.drawHelper(); // recursively draws children helpers as well
 
         GL.flush();
-        lastTime = time;
         requestAnimationFrame(animate);
     }
     animate(0);

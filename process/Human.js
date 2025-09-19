@@ -24,7 +24,7 @@ export class HumanCharacter extends BaseCharacter {
                 { axis: "x", angle: Math.PI / 4 },      // rotasi 45° sumbu X
                 { axis: "y", angle: Math.PI / 3 },      // rotasi 60° sumbu Y
                 { axis: "z", angle: Math.PI / 6 }]      // rotasi 30° sumbu Z
-        });  
+        });
 
         const ellipsoidMesh = applyTransformToMesh(this.meshes.ell.solid.mesh, {
             translate: [0, 1, 0],
@@ -100,7 +100,7 @@ export class HumanCharacter extends BaseCharacter {
             rightLowerLeg: this.createBone("rightLowerLeg", "rightUpperLeg", { translate: [0, 0, 0] }),
             rightFoot: this.createBone("rightFoot", "rightLowerLeg", { translate: [0, -0.6, 0] }),
         }
-        
+
         this.updateWorld();
 
         // #8 Create Model Matrix 
@@ -118,7 +118,9 @@ export class HumanCharacter extends BaseCharacter {
         }
     }
 
-    animate(time = null) {
+    animate(time) {
+
+        const t = time * 0.001;
 
         // Slight bounce of hip
         this.skeleton.hip.setLocalSpec({ translate: [0, 0, 0] });
@@ -129,37 +131,43 @@ export class HumanCharacter extends BaseCharacter {
         // arms swing opposite to legs
         this.skeleton.leftShoulder.setLocalSpec({
             translate: [-0.7, 0.45, 0],
+            rotate: [{ axis: [1, 1, 0], angle: t * (2 * Math.PI) / 5 }]
         }); // rotate di sumbu x dan y
-            // rotate: [{ axis: [1, 1, 0], angle: t * (2 * Math.PI) / 5 }]
 
         this.skeleton.rightShoulder.setLocalSpec({
             translate: [0.7, 0.45, 0],
+            rotate: [{ axis: { point: [0, 0, 0], dir: [1, 0, 0] }, angle: t * (2 * Math.PI) / 5 }]
         }); // jadi rusak
-        // rotate: [{ axis: { point: [0, 0, 0], dir: [1, 0, 0] }, angle: t * (2 * Math.PI) / 5 }]
 
         // elbow bend a little (lower arm)
-        this.skeleton.leftLowerArm.setLocalSpec({ translate: [0, -0.6, 0], 
+        this.skeleton.leftLowerArm.setLocalSpec({
+            translate: [0, -0.6, 0],
+            rotate: [{ axis: "z", angle: Math.abs(Math.sin(t * Math.cos(t))) * 0.2 }]
         });
-            // rotate: [{ axis: "z", angle: Math.abs(Math.sin(t * walkSpeed)) * 0.2 }] 
-        this.skeleton.rightLowerArm.setLocalSpec({ translate: [0, -0.6, 0], 
+        this.skeleton.rightLowerArm.setLocalSpec({
+            translate: [0, -0.6, 0],
+            rotate: [{ axis: "z", angle: -Math.abs(Math.sin(t * Math.cos(t) + Math.PI)) * 0.2 }]
         });
-            // rotate: [{ axis: "z", angle: -Math.abs(Math.sin(t * walkSpeed + Math.PI)) * 0.2 }] 
 
         // legs swing (hip)
-        this.skeleton.leftUpperLeg.setLocalSpec({ translate: [-0.3, 0, 0], 
+        this.skeleton.leftUpperLeg.setLocalSpec({
+            translate: [-0.3, 0, 0],
+            rotate: [{ axis: "x", angle: Math.cos(t)/2 }]
         });
-            // rotate: [{ axis: "x", angle: legSwing }] 
-        this.skeleton.rightUpperLeg.setLocalSpec({ translate: [0.3, 0, 0], 
-            });
-            // rotate: [{ axis: "x", angle: -legSwing }] 
+        this.skeleton.rightUpperLeg.setLocalSpec({
+            translate: [0.3, 0, 0],
+            rotate: [{ axis: "x", angle: -Math.cos(t)/2 }]
+        });
 
         // knees bend depending on swing
-        this.skeleton.leftLowerLeg.setLocalSpec({ translate: [0, -1.0, 0], 
+        this.skeleton.leftLowerLeg.setLocalSpec({
+            translate: [0, -1.0, 0],
+            rotate: [{ axis: "x", angle: Math.max(0, -Math.cos(t)/2) * 0.8 }]
         });
-            // rotate: [{ axis: "x", angle: Math.max(0, -legSwing) * 0.8 }] 
-        this.skeleton.rightLowerLeg.setLocalSpec({ translate: [0, -1.0, 0], 
+        this.skeleton.rightLowerLeg.setLocalSpec({
+            translate: [0, -1.0, 0],
+            rotate: [{ axis: "x", angle: Math.max(0, -Math.cos(t)/2) * 0.8 }]
         });
-            // rotate: [{ axis: "x", angle: Math.max(0, legSwing) * 0.8 }] 
 
         this.updateWorld();
     }
@@ -167,7 +175,7 @@ export class HumanCharacter extends BaseCharacter {
     drawObject() {
         // NOTE madeModel params -> bone, offset
         // NOTE drawObject params -> buffers, model, color, mode
-        
+
         //HUMAN
         drawObject(this.meshes.bodyMesh.solid.buffers, makeModel(this.skeleton.hip, this.offsetMesh.bodyOffset), [0.2, 0.6, 0.9], GL.TRIANGLES);
 
