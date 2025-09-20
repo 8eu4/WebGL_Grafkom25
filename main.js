@@ -1,4 +1,5 @@
 import { HumanCharacter } from "./process/Human.js";
+import { mime_jr } from "./process/mime_jr.js";
 
 
 // NOTE GLOBAL VARIABLE KE SELURUH FILE
@@ -37,7 +38,9 @@ function main() {
     // ---------- Mesh, Transform, Bone, Align mesh,  ----------
 
     // TODO Make HUMAN Object
-    const human = new HumanCharacter();
+    // const human = new HumanCharacter();
+
+    const mime_jr1 = new mime_jr();
 
     // Make other object here!
     //..
@@ -55,7 +58,8 @@ function main() {
         // -------------- update bone localSpecs ----------------
         // TODO
         // Animate HUMAN
-        human.animate(time)
+        // human.animate(time)
+        mime_jr1.animate(time);
 
         // Animate here!
         //..
@@ -63,14 +67,15 @@ function main() {
         // ------------------------ Draw Object -------------
         // TODO
         // Draw HUMAN
-        human.drawObject();
+        // human.drawObject();
+        mime_jr1.drawObject();
 
         // Draw here!
         //..
 
 
         // REVIEW --------------- Draw bone ----------------
-        human.root.drawHelper(); // dibuang jika tidak mau lihat bone
+        mime_jr1.root.drawHelper(); // dibuang jika tidak mau lihat bone
 
         GL.flush();
         requestAnimationFrame(animate);
@@ -141,6 +146,7 @@ function otherFactor() {
         attribute vec3 normal;
         attribute vec2 uv;
 
+        uniform bool uIsBone;
         uniform mat4 uMVP;
         uniform mat4 uModel;     // buat posisi dunia
         uniform mat3 uNormalMat; // transform normal
@@ -152,9 +158,17 @@ function otherFactor() {
 
         void main(void) {
             gl_Position = uMVP * vec4(position, 1.0);
-            vNormal = normalize(uNormalMat * normal);
-            vPos = (uModel * vec4(position, 1.0)).xyz; // posisi dunia
-            vUV = uv;
+            if (uIsBone) {
+                // Bone/joint: ga perlu normal/posisi → kasih dummy biar ga error
+                vNormal = vec3(0.0);
+                vPos    = vec3(0.0);
+                vUV     = vec2(0.0);
+            } else {
+                // Mesh biasa → tetap pake lighting data
+                vNormal = normalize(uNormalMat * normal);
+                vPos    = (uModel * vec4(position, 1.0)).xyz;
+                vUV     = uv;
+            }
         }`;
 
     const fsSource = `
