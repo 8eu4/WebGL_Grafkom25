@@ -179,14 +179,13 @@ export function cutMesh(rawMesh, cutPercent = 1.0, axis = "y", keep = "lower") {
 }
 
 export function drawObject(buffers, model, color, mode, isBone = false) {
-    // Bind posisi (wajib)
+    // --- binding attribute (pos, normal, uv) — tetap seperti kamu punya sekarang ---
     if (attribs.position >= 0) {
         GL.bindBuffer(GL.ARRAY_BUFFER, buffers.positionBuffer);
         GL.vertexAttribPointer(attribs.position, 3, GL.FLOAT, false, 0, 0);
         GL.enableVertexAttribArray(attribs.position);
     }
 
-    // Bind normal jika ada
     if (buffers.normalBuffer && attribs.normal >= 0) {
         GL.bindBuffer(GL.ARRAY_BUFFER, buffers.normalBuffer);
         GL.vertexAttribPointer(attribs.normal, 3, GL.FLOAT, false, 0, 0);
@@ -195,8 +194,6 @@ export function drawObject(buffers, model, color, mode, isBone = false) {
         GL.disableVertexAttribArray(attribs.normal);
     }
 
-
-    // Bind UV jika ada
     if (buffers.uvBuffer && attribs.uv >= 0) {
         GL.bindBuffer(GL.ARRAY_BUFFER, buffers.uvBuffer);
         GL.vertexAttribPointer(attribs.uv, 2, GL.FLOAT, false, 0, 0);
@@ -205,33 +202,35 @@ export function drawObject(buffers, model, color, mode, isBone = false) {
         GL.disableVertexAttribArray(attribs.uv);
     }
 
-    // Bind index buffer
-    GL.bindBuffer(GL.ELEMENT_ARRAY_BUFFER, buffers.indexBuffer);
+    // index buffer
+    if (buffers.indexBuffer) GL.bindBuffer(GL.ELEMENT_ARRAY_BUFFER, buffers.indexBuffer);
 
-    // --- Uniforms ---
+    // uniforms
     const mvp = mat4.create();
     mat4.multiply(mvp, view, model);
     mat4.multiply(mvp, proj, mvp);
     GL.uniformMatrix4fv(uMVP, false, mvp);
-
     GL.uniformMatrix4fv(uModel, false, model);
 
-    const normalMat = mat3.create();
-    mat3.normalFromMat4(normalMat, model);
-    GL.uniformMatrix3fv(uNormalMat, false, normalMat);
-
     if (isBone) {
-        const col = (color && color.length) ? color : [0.0, 1.0, 1.0, 1.0]; // fallback neon cyan
+        // bone = flat color path — set color uniform only
         GL.uniform1i(uIsBone, 1);
-        GL.uniform4fv(uColorBone, col);
+        // IMPORTANT: do NOT set normal matrix here (leave it alone)
     } else {
-        const col = (color && color.length) ? color : [1.0, 0.8, 0.6]; // fallback kulit
+        // normal mesh path — provide normal matrix + lighting color
+        const normalMat = mat3.create();
+        mat3.normalFromMat4(normalMat, model);
+        GL.uniformMatrix3fv(uNormalMat, false, normalMat);
+
         GL.uniform1i(uIsBone, 0);
+        const col = (color && color.length) ? color : [1.0, 0.8, 0.6];
         GL.uniform3fv(uColor, col);
     }
 
+    // finally draw
     GL.drawElements(mode, buffers.indexCount, buffers.indexType, 0);
 }
+
 
 // mengubah transformasi ini menjadi titik pusatnya. Contoh rotate 90 derajat ke kiri, jika apply, rotation tetap 90 derajat ke kiri tapi akan kembali menjadi 0 derajat lagi.
 export function applyTransformToMesh(mesh, { translate = [0, 0, 0], rotate = [], scale = [1, 1, 1] }) {

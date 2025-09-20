@@ -1,3 +1,5 @@
+import { createMesh } from './CreateObject.js';
+import { MeshUtils } from './MeshUtils.js';
 import { createModelMatrix, drawObject } from './CreateObject.js';
 import { GL, attribs, proj, view, uMVP, uColor, uModel, uNormalMat, uIsBone, uColorBone } from './main.js'
 
@@ -15,6 +17,9 @@ export class Bone {
 
         // create helper line buffers (we will update positions each frame)
         this.helperBuffers = this._createHelperBuffers();
+
+        // Mini sphere mesh for joint 
+        this.jointMesh = createMesh(MeshUtils.generateEllipsoid, { params: [0.025, 0.025, 0.025, 16, 32], deferBuffer: false, options: { wire: false } }); // radius kecil
     }
 
     setLocalSpec(spec) {
@@ -82,24 +87,31 @@ export class Bone {
 
             const identityModel = mat4.create();
 
-            // mode bone → bypass lighting
-            GL.uniform1i(uIsBone, 1);
-            GL.uniform4fv(uColorBone, [0.0, 1.0, 1.0, 1.0]); // neon cyan
-
+            // --- DISABLE DEPTH WRITE & TEST so bone will not occlude nor be occluded ---
             GL.disable(GL.DEPTH_TEST);
             GL.depthMask(false);
+
+            // 1) draw line with blending (optional alpha)
             GL.enable(GL.BLEND);
             GL.blendFunc(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA);
-
+            GL.uniform1i(uIsBone, 1);
+            GL.uniform4fv(uColorBone, [0.0, 1, 1, 1.0]); // cyan slightly translucent
             drawObject(drawBuf, identityModel, null, GL.LINES, true);
 
-            // reset state
-            GL.uniform1i(uIsBone, 0);
-            GL.depthMask(true);
+            // 2) draw sphere overlay as OPAQUE (no blending) — this ensures no visual mixing
             GL.disable(GL.BLEND);
+            GL.uniform1i(uIsBone, 1);
+            GL.uniform4fv(uColorBone, [0.7, 1, 0.7, 1.0]); // red, alpha = 1
+            drawObject(this.jointMesh.solid.buffers, this.worldMatrix, null, GL.TRIANGLES, true);
+
+            // restore depth state
+            GL.depthMask(true);
             GL.enable(GL.DEPTH_TEST);
+
+            // (do not re-enable blending here; next frames you set it explicitly as needed)
         }
 
+        // recurse to children
         for (const c of this.children) c.drawHelper();
     }
 
@@ -122,7 +134,7 @@ export function makeModel(bone, offset = null) {
 export function addLocalRotation(bone, axis, angle) {
     // axis: "x"|"y"|"z" or [ax,ay,az] or {point,dir}
     // angle: radians
-    if (!bone.localSpec) bone.localSpec = { translate: [0,0,0], rotate: [], scale: [1,1,1] };
+    if (!bone.localSpec) bone.localSpec = { translate: [0, 0, 0], rotate: [], scale: [1, 1, 1] };
     const rot = bone.localSpec.rotate ? bone.localSpec.rotate.slice() : [];
     rot.push({ axis, angle });
     bone.setLocalSpec({ rotate: rot });
