@@ -24,8 +24,12 @@ export class mime_jr extends BaseCharacter {
             lefteyeMesh:createMesh(MeshUtils.generateEllipsoid, {params:[0.2,0.3,0.05,32,64], deferBuffer: false}),
             righteyeMesh:createMesh(MeshUtils.generateEllipsoid, {params:[0.2,0.3,0.05,32,64], deferBuffer: false}),
             doteyeMesh:createMesh(MeshUtils.generateEllipsoid, {params:[0.05,0.1,0.005,32,64], deferBuffer: false}),
+            ballMesh:createMesh(MeshUtils.generateEllipsoid, {params: [0.45,0.45,0.45,32,64], deferBuffer: false}),
             
+            upperArmMesh:createMesh(MeshUtils.generateEllipticalCylinder, {params: [0.05,0.05,0.05,0.05, 1.2], deferBuffer: false}),
+            lowerArmMesh:createMesh(MeshUtils.generateEllipticalCylinder, {params: [0.05,0.05,0.05,0.05, 0.7], deferBuffer: false}),
             
+            palmBaseMesh:createMesh(MeshUtils.generateEllipsoid, {params: [1.4,1.1,1.4,32,64], deferBuffer: false})
             // #6 Buffer mesh hasil mesh ke GPU
             // holeOnCubeMesh: MeshUtils.createMeshBuffers(GL, holeOnCubeMesh, attribs)
 
@@ -45,7 +49,26 @@ export class mime_jr extends BaseCharacter {
             leftdotteye: this.createBone("leftdoteye", "lefteye", {translate:[0,0,0.06]}),
             rightdotteye: this.createBone("rightdoteye", "righteye", {translate:[0,0,0.06]}),
 
-            hip:this.createBone("hip", "neck", {translate: [0,-1.5,0]}),
+            shoulder:this.createBone("shoulder", "neck", {translate:[0,-0.3,0]}),
+            hip:this.createBone("hip", "shoulder", {translate: [0,-1.,0]}),
+           
+            ball1:this.createBone("ball", "hip", {translate: [-0.4,0,1]}),
+            ball2:this.createBone("ball", "hip", {translate: [0.4,0,1]}),
+            ball3:this.createBone("ball", "hip", {translate: [-1,0,0.42]}),
+            ball4:this.createBone("ball", "hip", {translate: [1,0,0.42]}),
+            ball5:this.createBone("ball", "hip", {translate: [0.9,0,-0.4]}),
+            ball6:this.createBone("ball", "hip", {translate: [-0.9,0,-0.4]}),
+            ball7:this.createBone("ball", "hip", {translate: [0.4,0,-1]}),
+            ball8:this.createBone("ball", "hip", {translate: [-0.4,0,-1]}),
+
+            leftUpperArm:this.createBone("leftUpperArm", "shoulder", {translate: [-0.5,0,0]}),
+            rightUpperArm:this.createBone("rightUpperArm", "shoulder", {translate: [0.5,0,0]}),
+            
+            leftLowerArm:this.createBone("leftLowerArm", "leftUpperArm", {translate: [-1.1,0,0]}),
+            rightLowerArm:this.createBone("rightLowerArm", "rightUpperArm", {translate: [1.1,0,0]}),
+
+            
+        
             
         }   
 
@@ -73,6 +96,20 @@ export class mime_jr extends BaseCharacter {
             rightdoteyeOffset: createModelMatrix({translate:[0,0,0], rotate:[
                 { axis: "y", angle: Math.PI/6 },
             ]}),
+            ballOffset:createModelMatrix({translate:[0,0,0]}),
+            leftUpperArmOffset:createModelMatrix({translate:[-0.5,0,0], rotate:[
+                { axis: "z", angle: Math.PI/2 },
+            ]}),
+            leftLowerArmOffset:createModelMatrix({translate:[-0.3,0,0], rotate:[
+                { axis: "z", angle: Math.PI/2 },
+            ]}),
+            rightUpperArmOffset:createModelMatrix({translate:[0.5,0,0], rotate:[
+                { axis: "z", angle: Math.PI/2 },
+            ]}),
+            rightLowerArmOffset:createModelMatrix({translate:[0.3,0,0], rotate:[
+                { axis: "z", angle: Math.PI/2 },
+            ]}),
+
             
         }
     }
@@ -95,6 +132,18 @@ export class mime_jr extends BaseCharacter {
         drawObject(this.meshes.righteyeMesh.solid.buffers, makeModel(this.skeleton.righteye, this.offsetMesh.righteyeOffset), [0,0,0], GL.TRIANGLES)
         drawObject(this.meshes.doteyeMesh.solid.buffers, makeModel(this.skeleton.leftdotteye, this.offsetMesh.leftdoteyeOffset), [1,1,1], GL.TRIANGLES)
         drawObject(this.meshes.doteyeMesh.solid.buffers, makeModel(this.skeleton.rightdotteye, this.offsetMesh.rightdoteyeOffset), [1,1,1], GL.TRIANGLES)
+        drawObject(this.meshes.ballMesh.solid.buffers, makeModel(this.skeleton.ball1, this.offsetMesh.ballOffset), [1, 0.78, 0.94], GL.TRIANGLES)
+        drawObject(this.meshes.ballMesh.solid.buffers, makeModel(this.skeleton.ball2, this.offsetMesh.ballOffset), [1, 0.78, 0.94], GL.TRIANGLES)
+        drawObject(this.meshes.ballMesh.solid.buffers, makeModel(this.skeleton.ball3, this.offsetMesh.ballOffset), [1, 0.78, 0.94], GL.TRIANGLES)
+        drawObject(this.meshes.ballMesh.solid.buffers, makeModel(this.skeleton.ball4, this.offsetMesh.ballOffset), [1, 0.78, 0.94], GL.TRIANGLES)
+        drawObject(this.meshes.ballMesh.solid.buffers, makeModel(this.skeleton.ball5, this.offsetMesh.ballOffset), [1, 0.78, 0.94], GL.TRIANGLES)
+        drawObject(this.meshes.ballMesh.solid.buffers, makeModel(this.skeleton.ball6, this.offsetMesh.ballOffset), [1, 0.78, 0.94], GL.TRIANGLES)
+        drawObject(this.meshes.ballMesh.solid.buffers, makeModel(this.skeleton.ball7, this.offsetMesh.ballOffset), [1, 0.78, 0.94], GL.TRIANGLES)
+        drawObject(this.meshes.ballMesh.solid.buffers, makeModel(this.skeleton.ball8, this.offsetMesh.ballOffset), [1, 0.78, 0.94], GL.TRIANGLES)
+        drawObject(this.meshes.upperArmMesh.solid.buffers, makeModel(this.skeleton.leftUpperArm, this.offsetMesh.leftUpperArmOffset), [1, 0.78, 0.94], GL.TRIANGLES)
+        drawObject(this.meshes.upperArmMesh.solid.buffers, makeModel(this.skeleton.rightUpperArm, this.offsetMesh.rightUpperArmOffset), [1, 0.78, 0.94], GL.TRIANGLES)
+        drawObject(this.meshes.lowerArmMesh.solid.buffers, makeModel(this.skeleton.leftLowerArm, this.offsetMesh.leftLowerArmOffset), [1, 0.78, 0.94], GL.TRIANGLES)
+        drawObject(this.meshes.lowerArmMesh.solid.buffers, makeModel(this.skeleton.rightLowerArm, this.offsetMesh.rightLowerArmOffset), [1, 0.78, 0.94], GL.TRIANGLES)
         
     }
 }

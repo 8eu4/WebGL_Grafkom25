@@ -1,5 +1,6 @@
 import { HumanCharacter } from "./process/Human.js";
 import { mime_jr } from "./process/mime_jr.js";
+import { mr_rime } from "./process/mr_rime.js";
 
 
 // NOTE GLOBAL VARIABLE KE SELURUH FILE
@@ -40,7 +41,12 @@ function main() {
     // TODO Make HUMAN Object
     const human = new HumanCharacter();
 
+<<<<<<< Updated upstream
     // const mime_jr1 = new mime_jr();
+=======
+    const mime_jr1 = new mime_jr();
+    const mr_rime1 = new mr_rime();
+>>>>>>> Stashed changes
 
     // Make other object here!
     //..
@@ -58,8 +64,14 @@ function main() {
         // -------------- update bone localSpecs ----------------
         // TODO
         // Animate HUMAN
+<<<<<<< Updated upstream
         human.animate(time)
         // mime_jr1.animate(time);
+=======
+        // human.animate(time)
+        // mime_jr1.animate(time);
+        mr_rime1.animate(time);
+>>>>>>> Stashed changes
 
         // Animate here!
         //..
@@ -67,16 +79,27 @@ function main() {
         // ------------------------ Draw Object -------------
         // TODO
         // Draw HUMAN
+<<<<<<< Updated upstream
         human.drawObject();
         // mime_jr1.drawObject();
+=======
+        // human.drawObject();
+        // mime_jr1.drawObject();
+        mr_rime1.drawObject();
+>>>>>>> Stashed changes
 
         // Draw here!
         //..
 
 
         // REVIEW --------------- Draw bone ----------------
+<<<<<<< Updated upstream
         // human.root.drawHelper();
         // mime_jr1.root.drawHelper(); // dibuang jika tidak mau lihat bone
+=======
+        // mime_jr1.root.drawHelper(); // dibuang jika tidak mau lihat bone
+        mr_rime1.root.drawHelper(); // dibuang jika tidak mau lihat bone
+>>>>>>> Stashed changes
 
         GL.flush();
         requestAnimationFrame(animate);
