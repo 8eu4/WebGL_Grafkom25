@@ -1,6 +1,7 @@
 import { MeshUtils } from "./MeshUtils.js"; // kalau butuh generateWireframeIndices
+import { Bone } from "./bone.js";
 
-function rotateAroundAxis(v, axis, angle) {
+export function rotateAroundAxis(v, axis, angle) {
     const cos = Math.cos(angle), sin = Math.sin(angle);
     const [x, y, z] = v;
     const [ax, ay, az] = axis;
@@ -10,6 +11,29 @@ function rotateAroundAxis(v, axis, angle) {
         ((1 - cos) * ay * ax + sin * az) * x + (cos + (1 - cos) * ay * ay) * y + ((1 - cos) * ay * az - sin * ax) * z,
         ((1 - cos) * az * ax - sin * ay) * x + ((1 - cos) * az * ay + sin * ax) * y + (cos + (1 - cos) * az * az) * z
     ];
+}
+
+export function animateAlongCurve(bone, curveFunc, time, duration = 5.0, mode = "loop") {
+    let t = (time / duration);
+
+    if (mode === "loop") {
+        t = t % 1.0; // 0..1, reset tiap durasi
+    } else if (mode === "pingpong") {
+        // bolak balik: 0→1, 1→0
+        t = t % 2.0;
+        if (t > 1.0) t = 2.0 - t;
+    } else if (mode === "once") {
+        // stop di ujung
+        t = Math.min(t, 1.0);
+    }
+
+    // sebagian kurva butuh skala 0..2π
+    const param = (curveFunc.name.includes("circle") || curveFunc.name.includes("ellipse") || curveFunc.name.includes("lissajous"))
+        ? t * 2 * Math.PI
+        : t;
+
+    const pos = curveFunc(param);
+    bone.setLocalSpec({ translate: pos });
 }
 
 export const MeshUtilsCurves = {

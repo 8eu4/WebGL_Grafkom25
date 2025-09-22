@@ -38,9 +38,9 @@ function main() {
     // ---------- Mesh, Transform, Bone, Align mesh,  ----------
 
     // TODO Make HUMAN Object
-    // const human = new HumanCharacter();
+    const human = new HumanCharacter();
 
-    const mime_jr1 = new mime_jr();
+    // const mime_jr1 = new mime_jr();
 
     // Make other object here!
     //..
@@ -58,8 +58,8 @@ function main() {
         // -------------- update bone localSpecs ----------------
         // TODO
         // Animate HUMAN
-        // human.animate(time)
-        mime_jr1.animate(time);
+        human.animate(time)
+        // mime_jr1.animate(time);
 
         // Animate here!
         //..
@@ -67,15 +67,16 @@ function main() {
         // ------------------------ Draw Object -------------
         // TODO
         // Draw HUMAN
-        // human.drawObject();
-        mime_jr1.drawObject();
+        human.drawObject();
+        // mime_jr1.drawObject();
 
         // Draw here!
         //..
 
 
         // REVIEW --------------- Draw bone ----------------
-        mime_jr1.root.drawHelper(); // dibuang jika tidak mau lihat bone
+        // human.root.drawHelper();
+        // mime_jr1.root.drawHelper(); // dibuang jika tidak mau lihat bone
 
         GL.flush();
         requestAnimationFrame(animate);

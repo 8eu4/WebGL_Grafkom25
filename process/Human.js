@@ -1,6 +1,6 @@
 import { BaseCharacter } from '/process/BaseCharacter.js';
 import { createModelMatrix, createMesh, drawObject, applyTransformToMesh, recenterMesh } from '../CreateObject.js';
-import { MeshUtilsCurves } from '../MeshUtilsCurves.js';
+import { MeshUtilsCurves, rotateAroundAxis, animateAlongCurve } from '../MeshUtilsCurves.js';
 import { MeshUtils } from '../MeshUtils.js';
 import * as Curves from '../curves.js';
 import { meshToCSG, CSGBuilder } from "../csgOperation.js";
@@ -128,52 +128,54 @@ export class HumanCharacter extends BaseCharacter {
         // TODO
         const t = time * 0.001;
 
-        // Slight bounce of hip
-        this.skeleton.hip.setLocalSpec({ translate: [0, 0, 0] });
 
-        // head slight look around
-        this.skeleton.head.setLocalSpec({ translate: [0, 0.05, 0] });
+        // // Slight bounce of hip
+        // this.skeleton.hip.setLocalSpec({ translate: [0, 0, 0] });
 
-        // arms swing opposite to legs
-        this.skeleton.leftShoulder.setLocalSpec({
-            translate: [-0.7, 0.45, 0],
-            rotate: [{ axis: [1, 1, 0], angle: t * (2 * Math.PI) / 5 }]
-        }); // rotate di sumbu x dan y
+        // // head slight look around
+        const curveFunc = (t) => Curves.helixCurve(t, 8, 0.2);
+        animateAlongCurve(this.skeleton.head, curveFunc, t, 2, "pingpong");
 
-        this.skeleton.rightShoulder.setLocalSpec({
-            translate: [0.7, 0.45, 0],
-            rotate: [{ axis: { point: [0, 0, 0], dir: [1, 0, 0] }, angle: t * (2 * Math.PI) / 5 }]
-        }); // jadi rusak
+        // // arms swing opposite to legs
+        // this.skeleton.leftShoulder.setLocalSpec({
+        //     translate: [-0.7, 0.45, 0],
+        //     rotate: [{ axis: [1, 1, 0], angle: t * (2 * Math.PI) / 5 }]
+        // }); // rotate di sumbu x dan y
 
-        // elbow bend a little (lower arm)
-        this.skeleton.leftLowerArm.setLocalSpec({
-            translate: [0, -0.6, 0],
-            rotate: [{ axis: "z", angle: Math.abs(Math.sin(t * Math.cos(t))) * 0.2 }]
-        });
-        this.skeleton.rightLowerArm.setLocalSpec({
-            translate: [0, -0.6, 0],
-            rotate: [{ axis: "z", angle: -Math.abs(Math.sin(t * Math.cos(t) + Math.PI)) * 0.2 }]
-        });
+        // this.skeleton.rightShoulder.setLocalSpec({
+        //     translate: [0.7, 0.45, 0],
+        //     rotate: [{ axis: { point: [0, 0, 0], dir: [1, 0, 0] }, angle: t * (2 * Math.PI) / 5 }]
+        // }); // jadi rusak
 
-        // legs swing (hip)
-        this.skeleton.leftUpperLeg.setLocalSpec({
-            translate: [-0.3, 0, 0],
-            rotate: [{ axis: "x", angle: Math.cos(t) / 2 }]
-        });
-        this.skeleton.rightUpperLeg.setLocalSpec({
-            translate: [0.3, 0, 0],
-            rotate: [{ axis: "x", angle: -Math.cos(t) / 2 }]
-        });
+        // // elbow bend a little (lower arm)
+        // this.skeleton.leftLowerArm.setLocalSpec({
+        //     translate: [0, -0.6, 0],
+        //     rotate: [{ axis: "z", angle: Math.abs(Math.sin(t * Math.cos(t))) * 0.2 }]
+        // });
+        // this.skeleton.rightLowerArm.setLocalSpec({
+        //     translate: [0, -0.6, 0],
+        //     rotate: [{ axis: "z", angle: -Math.abs(Math.sin(t * Math.cos(t) + Math.PI)) * 0.2 }]
+        // });
 
-        // knees bend depending on swing
-        this.skeleton.leftLowerLeg.setLocalSpec({
-            translate: [0, -1.0, 0],
-            rotate: [{ axis: "x", angle: Math.max(0, -Math.cos(t) / 2) * 0.8 }]
-        });
-        this.skeleton.rightLowerLeg.setLocalSpec({
-            translate: [0, -1.0, 0],
-            rotate: [{ axis: "x", angle: Math.max(0, -Math.cos(t) / 2) * 0.8 }]
-        });
+        // // legs swing (hip)
+        // this.skeleton.leftUpperLeg.setLocalSpec({
+        //     translate: [-0.3, 0, 0],
+        //     rotate: [{ axis: "x", angle: Math.cos(t) / 2 }]
+        // });
+        // this.skeleton.rightUpperLeg.setLocalSpec({
+        //     translate: [0.3, 0, 0],
+        //     rotate: [{ axis: "x", angle: -Math.cos(t) / 2 }]
+        // });
+
+        // // knees bend depending on swing
+        // this.skeleton.leftLowerLeg.setLocalSpec({
+        //     translate: [0, -1.0, 0],
+        //     rotate: [{ axis: "x", angle: Math.max(0, -Math.cos(t) / 2) * 0.8 }]
+        // });
+        // this.skeleton.rightLowerLeg.setLocalSpec({
+        //     translate: [0, -1.0, 0],
+        //     rotate: [{ axis: "x", angle: Math.max(0, -Math.cos(t) / 2) * 0.8 }]
+        // });
 
         this.updateWorld();
     }
@@ -184,32 +186,32 @@ export class HumanCharacter extends BaseCharacter {
         // drawObject params -> buffers, model, color, mode
 
         //HUMAN
-        drawObject(this.meshes.bodyMesh.solid.buffers, makeModel(this.skeleton.hip, this.offsetMesh.bodyOffset), [0.2, 0.6, 0.9], GL.TRIANGLES);
+        // drawObject(this.meshes.bodyMesh.solid.buffers, makeModel(this.skeleton.hip, this.offsetMesh.bodyOffset), [0.2, 0.6, 0.9], GL.TRIANGLES);
 
-        // chest
-        drawObject(this.meshes.chestMesh.solid.buffers, makeModel(this.skeleton.chest, this.offsetMesh.chestOffset), [0.15, 0.5, 0.8], GL.TRIANGLES);
+        // // chest
+        // drawObject(this.meshes.chestMesh.solid.buffers, makeModel(this.skeleton.chest, this.offsetMesh.chestOffset), [0.15, 0.5, 0.8], GL.TRIANGLES);
 
         // head
         drawObject(this.meshes.holeOnCubeMesh, makeModel(this.skeleton.head, this.offsetMesh.holeOnCubeOffset), [1.0, 0.8, 0.6], GL.TRIANGLES);
 
-        // left arm
-        drawObject(this.meshes.upperArmMesh.solid.buffers, makeModel(this.skeleton.leftUpperArm, this.offsetMesh.upperArmOffset), [0.8, 0.2, 0.2], GL.TRIANGLES);
-        drawObject(this.meshes.lowerArmMesh.solid.buffers, makeModel(this.skeleton.leftLowerArm, this.offsetMesh.lowerArmOffset), [0.7, 0.2, 0.2], GL.TRIANGLES);
-        drawObject(this.meshes.handMesh.solid.buffers, makeModel(this.skeleton.leftHand, this.offsetMesh.handOffset), [0.9, 0.6, 0.5], GL.TRIANGLES);
+        // // left arm
+        // drawObject(this.meshes.upperArmMesh.solid.buffers, makeModel(this.skeleton.leftUpperArm, this.offsetMesh.upperArmOffset), [0.8, 0.2, 0.2], GL.TRIANGLES);
+        // drawObject(this.meshes.lowerArmMesh.solid.buffers, makeModel(this.skeleton.leftLowerArm, this.offsetMesh.lowerArmOffset), [0.7, 0.2, 0.2], GL.TRIANGLES);
+        // drawObject(this.meshes.handMesh.solid.buffers, makeModel(this.skeleton.leftHand, this.offsetMesh.handOffset), [0.9, 0.6, 0.5], GL.TRIANGLES);
 
-        // right arm
-        drawObject(this.meshes.upperArmMesh.solid.buffers, makeModel(this.skeleton.rightUpperArm, this.offsetMesh.upperArmOffset), [0.8, 0.2, 0.2], GL.TRIANGLES);
-        drawObject(this.meshes.lowerArmMesh.solid.buffers, makeModel(this.skeleton.rightLowerArm, this.offsetMesh.lowerArmOffset), [0.7, 0.2, 0.2], GL.TRIANGLES);
-        drawObject(this.meshes.handMesh.solid.buffers, makeModel(this.skeleton.rightHand, this.offsetMesh.handOffset), [0.9, 0.6, 0.5], GL.TRIANGLES);
+        // // right arm
+        // drawObject(this.meshes.upperArmMesh.solid.buffers, makeModel(this.skeleton.rightUpperArm, this.offsetMesh.upperArmOffset), [0.8, 0.2, 0.2], GL.TRIANGLES);
+        // drawObject(this.meshes.lowerArmMesh.solid.buffers, makeModel(this.skeleton.rightLowerArm, this.offsetMesh.lowerArmOffset), [0.7, 0.2, 0.2], GL.TRIANGLES);
+        // drawObject(this.meshes.handMesh.solid.buffers, makeModel(this.skeleton.rightHand, this.offsetMesh.handOffset), [0.9, 0.6, 0.5], GL.TRIANGLES);
 
-        // left legs
-        drawObject(this.meshes.upperLegMesh.solid.buffers, makeModel(this.skeleton.leftUpperLeg, this.offsetMesh.upperLegOffset), [0.2, 0.2, 0.2], GL.TRIANGLES);
-        drawObject(this.meshes.lowerLegMesh.solid.buffers, makeModel(this.skeleton.leftLowerLeg, this.offsetMesh.lowerLegOffset), [0.15, 0.15, 0.15], GL.TRIANGLES);
-        drawObject(this.meshes.footMesh.solid.buffers, makeModel(this.skeleton.leftFoot, this.offsetMesh.footOffset), [0.1, 0.1, 0.1], GL.TRIANGLES);
+        // // left legs
+        // drawObject(this.meshes.upperLegMesh.solid.buffers, makeModel(this.skeleton.leftUpperLeg, this.offsetMesh.upperLegOffset), [0.2, 0.2, 0.2], GL.TRIANGLES);
+        // drawObject(this.meshes.lowerLegMesh.solid.buffers, makeModel(this.skeleton.leftLowerLeg, this.offsetMesh.lowerLegOffset), [0.15, 0.15, 0.15], GL.TRIANGLES);
+        // drawObject(this.meshes.footMesh.solid.buffers, makeModel(this.skeleton.leftFoot, this.offsetMesh.footOffset), [0.1, 0.1, 0.1], GL.TRIANGLES);
 
-        // right legs
-        drawObject(this.meshes.upperLegMesh.solid.buffers, makeModel(this.skeleton.rightUpperLeg, this.offsetMesh.upperLegOffset), [0.2, 0.2, 0.2], GL.TRIANGLES);
-        drawObject(this.meshes.lowerLegMesh.solid.buffers, makeModel(this.skeleton.rightLowerLeg, this.offsetMesh.lowerLegOffset), [0.15, 0.15, 0.15], GL.TRIANGLES);
-        drawObject(this.meshes.footMesh.solid.buffers, makeModel(this.skeleton.rightFoot, this.offsetMesh.footOffset), [0.1, 0.1, 0.1], GL.TRIANGLES);
+        // // right legs
+        // drawObject(this.meshes.upperLegMesh.solid.buffers, makeModel(this.skeleton.rightUpperLeg, this.offsetMesh.upperLegOffset), [0.2, 0.2, 0.2], GL.TRIANGLES);
+        // drawObject(this.meshes.lowerLegMesh.solid.buffers, makeModel(this.skeleton.rightLowerLeg, this.offsetMesh.lowerLegOffset), [0.15, 0.15, 0.15], GL.TRIANGLES);
+        // drawObject(this.meshes.footMesh.solid.buffers, makeModel(this.skeleton.rightFoot, this.offsetMesh.footOffset), [0.1, 0.1, 0.1], GL.TRIANGLES);
     }
 }
