@@ -349,7 +349,13 @@ export const MeshUtils = (function () {
             }
         }
 
-        return { positions: new Float32Array(positions), indices: new Uint16Array(indices) };
+        return {
+            positions: new Float32Array(positions),
+            indices: (positions.length / 3 > 65535)
+                ? new Uint32Array(indices)
+                : new Uint16Array(indices),
+            normals: new Float32Array(positions, indices),
+        };
     }
 
     function generateHyperbolicParaboloid(a = 1, b = 1, size = 2, slices = 32, stacks = 32) {
@@ -377,7 +383,7 @@ export const MeshUtils = (function () {
             }
         }
 
-        return { positions: new Float32Array(positions), indices: new Uint16Array(indices) };
+        return { positions: new Float32Array(positions), normals: new Float32Array(positions, indices), indices: new Uint16Array(indices) };
     }
 
     function generateHyperboloidSheets(a = 1, b = 1, c = 1, uSteps = 32, vSteps = 32, vMax = 1.5) {
@@ -417,7 +423,7 @@ export const MeshUtils = (function () {
             }
         }
 
-        return { positions: new Float32Array(positions), indices: new Uint16Array(indices) };
+        return { positions: new Float32Array(positions), normals: new Float32Array(positions, indices), indices: new Uint16Array(indices) };
     }
 
     function generateHyperboloid2Sheets(a = 1, b = 1, c = 1, uSteps = 32, vSteps = 32, vMax = 1.5) {
@@ -460,6 +466,7 @@ export const MeshUtils = (function () {
 
         return {
             positions: new Float32Array(positions),
+            normals: new Float32Array(positions, indices),
             indices: new Uint16Array(indices)
         };
     }
@@ -623,6 +630,7 @@ export const MeshUtils = (function () {
 
     // Public API
     return {
+        generateHumanHeadShape,
         generateEllipsoid,
         generateBox,
         generateEllipticalCylinder,
