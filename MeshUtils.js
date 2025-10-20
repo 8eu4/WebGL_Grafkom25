@@ -1,7 +1,7 @@
 export const MeshUtils = (function () {
     // ---------- Basic generators ----------
 
-    // Ellipsoid generator (latitudes x longitudes)
+    // Ellipsoid generator
     function generateEllipsoid(rx = 1, ry = 1, rz = 1, latSeg = 32, lonSeg = 64) {
         // rx, ry, rz: radii along x,y,z
         // latSeg: >=2, lonSeg: >=3
@@ -77,7 +77,7 @@ export const MeshUtils = (function () {
         };
     }
 
-    // Box generator (centered at origin)
+    // Box generator
     function generateBox(width = 1, height = 1, depth = 1) {
         const w2 = width / 2, h2 = height / 2, d2 = depth / 2;
         // 24 verts (4 per face) so normals per face are flat
@@ -322,22 +322,40 @@ export const MeshUtils = (function () {
         return { positions: new Float32Array(positions), indices: new Uint16Array(indices) };
     }
 
-    function generateEllipticParaboloid(a = 1, b = 1, height = 2, slices = 32, stacks = 16) {
-        // z = (x^2 / a^2) + (y^2 / b^2)
+    function generateEllipticParaboloid(a = 1, b = 1, c = 1, height = 2, slices = 32, stacks = 16) {
         const positions = [];
         const indices = [];
+        const tempNormals = [];
 
         for (let i = 0; i <= stacks; i++) {
-            const z = (i / stacks) * height;
-            const r = Math.sqrt(z); // radius ~ sqrt(z)
+            const Z_scaled = (i / stacks) * (height / c);
+            const r = Math.sqrt(Z_scaled);
+            const z = c * Z_scaled;
+
             for (let j = 0; j <= slices; j++) {
                 const theta = (j / slices) * 2 * Math.PI;
+
                 const x = a * r * Math.cos(theta);
                 const y = b * r * Math.sin(theta);
                 positions.push(x, y, z);
+
+                // --- Perhitungan Normal ---
+                let nx = -2 * x / (a * a);
+                let ny = -2 * y / (b * b);
+                let nz = 1 / c;
+
+                // Normalisasi
+                const length = Math.sqrt(nx * nx + ny * ny + nz * nz);
+                if (length > 0) {
+                    nx /= length;
+                    ny /= length;
+                    nz /= length;
+                }
+                tempNormals.push(nx, ny, nz);
             }
         }
 
+        // --- Perhitungan Indeks ---
         const rowVerts = slices + 1;
         for (let i = 0; i < stacks; i++) {
             for (let j = 0; j < slices; j++) {
@@ -348,30 +366,63 @@ export const MeshUtils = (function () {
                 indices.push(i0, i2, i1, i1, i2, i3);
             }
         }
+
+        const positionsLength = positions.length / 3;
 
         return {
             positions: new Float32Array(positions),
-            indices: (positions.length / 3 > 65535)
+            indices: (positionsLength > 65535)
                 ? new Uint32Array(indices)
                 : new Uint16Array(indices),
-            normals: new Float32Array(positions, indices),
+            normals: new Float32Array(tempNormals),
         };
     }
 
-    function generateHyperbolicParaboloid(a = 1, b = 1, size = 2, slices = 32, stacks = 32) {
-        // z = (x^2 / a^2) - (y^2 / b^2)
+    function generateHyperbolicParaboloid(a = 1, b = 1, c = 1, size = 2, slices = 32, stacks = 32) {
         const positions = [];
+        const normals = [];
         const indices = [];
 
+        // 1. Hitung Posisi dan Normal
+        // Iterasi melalui domain (kotak) dari x dan y
         for (let i = 0; i <= stacks; i++) {
+            // y: berkisar dari -size hingga +size
             const y = -size + (2 * size * i) / stacks;
+
             for (let j = 0; j <= slices; j++) {
+                // x: berkisar dari -size hingga +size
                 const x = -size + (2 * size * j) / slices;
-                const z = (x * x) / (a * a) - (y * y) / (b * b);
+
+                // Hitung Z_term: (x^2 / a^2) - (y^2 / b^2)
+                const z_term = (x * x) / (a * a) - (y * y) / (b * b);
+
+                // Ketinggian z sebenarnya: z = c * Z_term
+                const z = c * z_term;
+
                 positions.push(x, y, z);
+
+                // --- Perhitungan Normal ---
+                // F(x,y,z) = x^2/a^2 - y^2/b^2 - z/c = 0
+                // Vektor Normal N = gradien F = < dF/dx, dF/dy, dF/dz >
+                // N = < 2x/a^2, -2y/b^2, -1/c >
+                let nx = 2 * x / (a * a);
+                let ny = -2 * y / (b * b);
+                let nz = -1 / c;
+
+                // Normalisasi vektor
+                const length = Math.sqrt(nx * nx + ny * ny + nz * nz);
+                if (length > 1e-6) { // Pastikan tidak dibagi nol
+                    nx /= length;
+                    ny /= length;
+                    nz /= length;
+                }
+                // Normalnya harus menunjuk ke atas, jadi kita balik (negatif)
+                // (Tergantung orientasi segitiga, biasanya kita ingin normal menunjuk ke 'luar' atau 'atas')
+                normals.push(-nx, -ny, -nz);
             }
         }
 
+        // 2. Hitung Indeks (Topologi Mesh)
         const rowVerts = slices + 1;
         for (let i = 0; i < stacks; i++) {
             for (let j = 0; j < slices; j++) {
@@ -379,11 +430,22 @@ export const MeshUtils = (function () {
                 const i1 = i0 + 1;
                 const i2 = i0 + rowVerts;
                 const i3 = i2 + 1;
-                indices.push(i0, i2, i1, i1, i2, i3);
+
+                // Segitiga 1 dan Segitiga 2 untuk membentuk quad
+                indices.push(i0, i2, i1);
+                indices.push(i1, i2, i3);
             }
         }
 
-        return { positions: new Float32Array(positions), normals: new Float32Array(positions, indices), indices: new Uint16Array(indices) };
+        // 3. Kembalikan Data Mesh
+        const positionsLength = positions.length / 3;
+
+        return {
+            positions: new Float32Array(positions),
+            normals: new Float32Array(normals),
+            // Menggunakan Uint32Array jika jumlah simpul sangat besar
+            indices: (positionsLength > 65535) ? new Uint32Array(indices) : new Uint16Array(indices)
+        };
     }
 
     function generateHyperboloidSheets(a = 1, b = 1, c = 1, uSteps = 32, vSteps = 32, vMax = 1.5) {
@@ -630,7 +692,6 @@ export const MeshUtils = (function () {
 
     // Public API
     return {
-        generateHumanHeadShape,
         generateEllipsoid,
         generateBox,
         generateEllipticalCylinder,
