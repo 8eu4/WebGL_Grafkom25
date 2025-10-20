@@ -62,7 +62,7 @@ function main() {
         // Animate HUMAN
         // human.animate(time)
         // mime_jr1.animate(time);
-        mr_rime1.animate(time);
+        // mr_rime1.animate(time);
 
         // Animate here!
         //..
@@ -71,16 +71,16 @@ function main() {
         // TODO
         // Draw HUMAN
         // human.drawObject();
-        // mime_jr1.drawObject();
-        mr_rime1.drawObject();
+        mime_jr1.drawObject();
+        // mr_rime1.drawObject();
 
         // Draw here!
         //..
 
 
         // REVIEW --------------- Draw bone ----------------
-        // mime_jr1.root.drawHelper(); // dibuang jika tidak mau lihat bone
-        mr_rime1.root.drawHelper(); // dibuang jika tidak mau lihat bone
+        mime_jr1.root.drawHelper(); // dibuang jika tidak mau lihat bone
+        // mr_rime1.root.drawHelper(); // dibuang jika tidak mau lihat bone
 
         GL.flush();
         requestAnimationFrame(animate);
@@ -199,12 +199,8 @@ function otherFactor() {
         return;
     }
 
-    // DEBUG: tampilkan normal sebagai warna
     vec3 N = normalize(vNormal);
     gl_FragColor = vec4((N * 0.5) + 0.5, 1.0);
-
-    // --- komentar dulu lighting aslinya ---
-    /*
     vec3 L = normalize(-uLightDir);
     vec3 V = normalize(uViewPos - vPos);
     vec3 R = reflect(-L, N);
@@ -217,7 +213,7 @@ function otherFactor() {
 
     vec3 result = ambient + diffuse + specular;
     gl_FragColor = vec4(result, 1.0);
-    */
+    
 }
 
         // void main(void) {
