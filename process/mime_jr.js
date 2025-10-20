@@ -3,11 +3,12 @@ import { createModelMatrix, createMesh, drawObject, applyTransformToMesh, recent
 import { MeshUtilsCurves, animateAlongCurve, rotateAroundAxis } from '../MeshUtilsCurves.js';
 import { MeshUtils } from '../MeshUtils.js';
 import * as Curves from '../curves.js';
-import { meshToCSG, CSGBuilder } from "../csgOperation.js";
 import { makeModel } from "../bone.js";
 import { GL, attribs } from '../main.js'
 // Di bagian atas file mime_jr.js
 import { setLocalRotationAxisAngle } from "../bone.js";
+import { applyBoneOffsetMesh } from "../bone.js";
+
 
 export class mime_jr extends BaseCharacter {
     constructor() {
@@ -515,22 +516,40 @@ export class mime_jr extends BaseCharacter {
     drawObject() {
 
         // BODY
-        drawObject(this.meshes.bodyMesh.solid.buffers, makeModel(this.skeleton.neck, this.offsetMesh.bodyOffset), [1, 0.78, 0.94], GL.TRIANGLES)
+        let body = applyBoneOffsetMesh(this.skeleton.neck, this.meshes.bodyMesh.solid.mesh, this.offsetMesh.bodyOffset);
+        drawObject(body.buffers, body.modelMatrix, [1, 0.78, 0.94], GL.TRIANGLES)
 
         // HEAD AND HAIR
-        drawObject(this.meshes.headMesh.solid.buffers, makeModel(this.skeleton.head, this.offsetMesh.headOffset), [1, 0.78, 0.94], GL.TRIANGLES)
-        drawObject(this.meshes.leftHairMesh.solid.buffers, makeModel(this.skeleton.lefthair, this.offsetMesh.lefthairOffset), [0.157, 0.392, 0.522], GL.TRIANGLES)
-        drawObject(this.meshes.rightHairMesh.solid.buffers, makeModel(this.skeleton.righthair, this.offsetMesh.righthairOffset), [0.157, 0.392, 0.522], GL.TRIANGLES)
-        drawObject(this.meshes.backHairMesh.solid.buffers, makeModel(this.skeleton.backhair, this.offsetMesh.backhairOffset), [0.157, 0.392, 0.522], GL.TRIANGLES)
-        drawObject(this.meshes.topHairMesh.solid.buffers, makeModel(this.skeleton.tophair, this.offsetMesh.tophairOffset), [0.157, 0.392, 0.522], GL.TRIANGLES)
-        drawObject(this.meshes.hatMesh.solid.buffers, makeModel(this.skeleton.hat, this.offsetMesh.hatOffset), [0.157, 0.392, 0.522], GL.TRIANGLES)
-        drawObject(this.meshes.hatMesh.solid.buffers, makeModel(this.skeleton.hat, this.offsetMesh.hatOffset), [0.157, 0.392, 0.522], GL.TRIANGLES)
-        drawObject(this.meshes.hatCoverMesh.solid.buffers, makeModel(this.skeleton.hat, this.offsetMesh.hatCoverOffset), [0.157, 0.392, 0.522], GL.TRIANGLES)
-        drawObject(this.meshes.coneHatMesh.solid.buffers, makeModel(this.skeleton.hat, this.offsetMesh.hatConeOffset), [0.157, 0.392, 0.522], GL.TRIANGLES)
-        drawObject(this.meshes.topHatMesh.solid.buffers, makeModel(this.skeleton.hat, this.offsetMesh.topHatOffset), [1, 1, 1], GL.TRIANGLES)
+        let head = applyBoneOffsetMesh(this.skeleton.head, this.meshes.headMesh.solid.mesh, this.offsetMesh.headOffset);
+        drawObject(head.buffers, head.modelMatrix, [1, 0.78, 0.94], GL.TRIANGLES);
+
+        let leftHair = applyBoneOffsetMesh(this.skeleton.lefthair, this.meshes.leftHairMesh.solid.mesh, this.offsetMesh.lefthairOffset);
+        drawObject(leftHair.buffers, leftHair.modelMatrix, [0.157, 0.392, 0.522], GL.TRIANGLES);
+
+        let rightHair = applyBoneOffsetMesh(this.skeleton.righthair, this.meshes.rightHairMesh.solid.mesh, this.offsetMesh.righthairOffset);
+        drawObject(rightHair.buffers, rightHair.modelMatrix, [0.157, 0.392, 0.522], GL.TRIANGLES);
+
+        let backHair = applyBoneOffsetMesh(this.skeleton.backhair, this.meshes.backHairMesh.solid.mesh, this.offsetMesh.backhairOffset);
+        drawObject(backHair.buffers, backHair.modelMatrix, [0.157, 0.392, 0.522], GL.TRIANGLES);
+
+        let topHair = applyBoneOffsetMesh(this.skeleton.tophair, this.meshes.topHairMesh.solid.mesh, this.offsetMesh.tophairOffset);
+        drawObject(topHair.buffers, topHair.modelMatrix, [0.157, 0.392, 0.522], GL.TRIANGLES);
+
+        let hat = applyBoneOffsetMesh(this.skeleton.hat, this.meshes.hatMesh.solid.mesh, this.offsetMesh.hatOffset);
+        drawObject(hat.buffers, hat.modelMatrix, [0.157, 0.392, 0.522], GL.TRIANGLES);
+
+        let hatCover = applyBoneOffsetMesh(this.skeleton.hat, this.meshes.hatCoverMesh.solid.mesh, this.offsetMesh.hatCoverOffset);
+        drawObject(hatCover.buffers, hatCover.modelMatrix, [0.157, 0.392, 0.522], GL.TRIANGLES);
+
+        let coneHat = applyBoneOffsetMesh(this.skeleton.hat, this.meshes.coneHatMesh.solid.mesh, this.offsetMesh.hatConeOffset);
+        drawObject(coneHat.buffers, coneHat.modelMatrix, [0.157, 0.392, 0.522], GL.TRIANGLES);
+
+        let topHat = applyBoneOffsetMesh(this.skeleton.hat, this.meshes.topHatMesh.solid.mesh, this.offsetMesh.topHatOffset);
+        drawObject(topHat.buffers, topHat.modelMatrix, [1, 1, 1], GL.TRIANGLES);
 
         // NOSE
-        drawObject(this.meshes.noseMesh.solid.buffers, makeModel(this.skeleton.nose, this.offsetMesh.noseOffset), [1, 0.3, 0.46], GL.TRIANGLES)
+        let nose = applyBoneOffsetMesh(this.skeleton.nose, this.meshes.noseMesh.solid.mesh, this.offsetMesh.noseOffset);
+        drawObject(nose.buffers, nose.modelMatrix, [1, 0.3, 0.46], GL.TRIANGLES);
 
         // === GAMBAR MULUT 2D ===
         const mouthModel = makeModel(this.skeleton.mouth, this.offsetMesh.mouthOffset);
@@ -559,42 +578,92 @@ export class mime_jr extends BaseCharacter {
 
 
         // EYES
-        drawObject(this.meshes.eyeMesh.solid.buffers, makeModel(this.skeleton.lefteye, this.offsetMesh.lefteyeOffset), [0, 0, 0], GL.TRIANGLES)
-        drawObject(this.meshes.eyeMesh.solid.buffers, makeModel(this.skeleton.righteye, this.offsetMesh.righteyeOffset), [0, 0, 0], GL.TRIANGLES)
-        drawObject(this.meshes.doteyeMesh.solid.buffers, makeModel(this.skeleton.leftdotteye, this.offsetMesh.leftdoteyeOffset), [1, 1, 1], GL.TRIANGLES)
-        drawObject(this.meshes.doteyeMesh.solid.buffers, makeModel(this.skeleton.rightdotteye, this.offsetMesh.rightdoteyeOffset), [1, 1, 1], GL.TRIANGLES)
+        let leftEye = applyBoneOffsetMesh(this.skeleton.lefteye, this.meshes.eyeMesh.solid.mesh, this.offsetMesh.lefteyeOffset);
+        drawObject(leftEye.buffers, leftEye.modelMatrix, [0, 0, 0], GL.TRIANGLES);
+
+        let rightEye = applyBoneOffsetMesh(this.skeleton.righteye, this.meshes.eyeMesh.solid.mesh, this.offsetMesh.righteyeOffset);
+        drawObject(rightEye.buffers, rightEye.modelMatrix, [0, 0, 0], GL.TRIANGLES);
+
+        let leftDotEye = applyBoneOffsetMesh(this.skeleton.leftdotteye, this.meshes.doteyeMesh.solid.mesh, this.offsetMesh.leftdoteyeOffset);
+        drawObject(leftDotEye.buffers, leftDotEye.modelMatrix, [1, 1, 1], GL.TRIANGLES);
+
+        let rightDotEye = applyBoneOffsetMesh(this.skeleton.rightdotteye, this.meshes.doteyeMesh.solid.mesh, this.offsetMesh.rightdoteyeOffset);
+        drawObject(rightDotEye.buffers, rightDotEye.modelMatrix, [1, 1, 1], GL.TRIANGLES);
 
         // BODY BALL
-        drawObject(this.meshes.ballMesh.solid.buffers, makeModel(this.skeleton.ball1, this.offsetMesh.ballOffset), [1, 0.78, 0.94], GL.TRIANGLES)
-        drawObject(this.meshes.ballMesh.solid.buffers, makeModel(this.skeleton.ball2, this.offsetMesh.ballOffset), [1, 0.78, 0.94], GL.TRIANGLES)
-        drawObject(this.meshes.ballMesh.solid.buffers, makeModel(this.skeleton.ball3, this.offsetMesh.ballOffset), [1, 0.78, 0.94], GL.TRIANGLES)
-        drawObject(this.meshes.ballMesh.solid.buffers, makeModel(this.skeleton.ball4, this.offsetMesh.ballOffset), [1, 0.78, 0.94], GL.TRIANGLES)
-        drawObject(this.meshes.ballMesh.solid.buffers, makeModel(this.skeleton.ball5, this.offsetMesh.ballOffset), [1, 0.78, 0.94], GL.TRIANGLES)
-        drawObject(this.meshes.ballMesh.solid.buffers, makeModel(this.skeleton.ball6, this.offsetMesh.ballOffset), [1, 0.78, 0.94], GL.TRIANGLES)
-        drawObject(this.meshes.ballMesh.solid.buffers, makeModel(this.skeleton.ball7, this.offsetMesh.ballOffset), [1, 0.78, 0.94], GL.TRIANGLES)
-        drawObject(this.meshes.ballMesh.solid.buffers, makeModel(this.skeleton.ball8, this.offsetMesh.ballOffset), [1, 0.78, 0.94], GL.TRIANGLES)
-        drawObject(this.meshes.redDotBodyMesh.solid.buffers, makeModel(this.skeleton.hip, this.offsetMesh.redDotBodyOffset), [1, 0.3, 0.46], GL.TRIANGLES)
+        let ball1 = applyBoneOffsetMesh(this.skeleton.ball1, this.meshes.ballMesh.solid.mesh, this.offsetMesh.ballOffset);
+        drawObject(ball1.buffers, ball1.modelMatrix, [1, 0.78, 0.94], GL.TRIANGLES);
+
+        let ball2 = applyBoneOffsetMesh(this.skeleton.ball2, this.meshes.ballMesh.solid.mesh, this.offsetMesh.ballOffset);
+        drawObject(ball2.buffers, ball2.modelMatrix, [1, 0.78, 0.94], GL.TRIANGLES);
+
+        let ball3 = applyBoneOffsetMesh(this.skeleton.ball3, this.meshes.ballMesh.solid.mesh, this.offsetMesh.ballOffset);
+        drawObject(ball3.buffers, ball3.modelMatrix, [1, 0.78, 0.94], GL.TRIANGLES);
+
+        let ball4 = applyBoneOffsetMesh(this.skeleton.ball4, this.meshes.ballMesh.solid.mesh, this.offsetMesh.ballOffset);
+        drawObject(ball4.buffers, ball4.modelMatrix, [1, 0.78, 0.94], GL.TRIANGLES);
+
+        let ball5 = applyBoneOffsetMesh(this.skeleton.ball5, this.meshes.ballMesh.solid.mesh, this.offsetMesh.ballOffset);
+        drawObject(ball5.buffers, ball5.modelMatrix, [1, 0.78, 0.94], GL.TRIANGLES);
+
+        let ball6 = applyBoneOffsetMesh(this.skeleton.ball6, this.meshes.ballMesh.solid.mesh, this.offsetMesh.ballOffset);
+        drawObject(ball6.buffers, ball6.modelMatrix, [1, 0.78, 0.94], GL.TRIANGLES);
+
+        let ball7 = applyBoneOffsetMesh(this.skeleton.ball7, this.meshes.ballMesh.solid.mesh, this.offsetMesh.ballOffset);
+        drawObject(ball7.buffers, ball7.modelMatrix, [1, 0.78, 0.94], GL.TRIANGLES);
+
+        let ball8 = applyBoneOffsetMesh(this.skeleton.ball8, this.meshes.ballMesh.solid.mesh, this.offsetMesh.ballOffset);
+        drawObject(ball8.buffers, ball8.modelMatrix, [1, 0.78, 0.94], GL.TRIANGLES);
+
+        let hip = applyBoneOffsetMesh(this.skeleton.hip, this.meshes.redDotBodyMesh.solid.mesh, this.offsetMesh.redDotBodyOffset);
+        drawObject(hip.buffers, hip.modelMatrix, [1, 0.3, 0.46], GL.TRIANGLES);
 
         // ARMS
-        drawObject(this.meshes.upperArmMesh.solid.buffers, makeModel(this.skeleton.leftUpperArm, this.offsetMesh.leftUpperArmOffset), [1, 0.78, 0.94], GL.TRIANGLES)
-        drawObject(this.meshes.upperArmMesh.solid.buffers, makeModel(this.skeleton.rightUpperArm, this.offsetMesh.rightUpperArmOffset), [1, 0.78, 0.94], GL.TRIANGLES)
-        drawObject(this.meshes.lowerArmMesh.solid.buffers, makeModel(this.skeleton.leftLowerArm, this.offsetMesh.leftLowerArmOffset), [1, 0.78, 0.94], GL.TRIANGLES)
-        drawObject(this.meshes.lowerArmMesh.solid.buffers, makeModel(this.skeleton.rightLowerArm, this.offsetMesh.rightLowerArmOffset), [1, 0.78, 0.94], GL.TRIANGLES)
-        drawObject(this.meshes.armEngselMesh.solid.buffers, makeModel(this.skeleton.leftUpperArm, this.offsetMesh.leftUpperArmEngselOffset), [1, 0.78, 0.94], GL.TRIANGLES)
-        drawObject(this.meshes.armEngselMesh.solid.buffers, makeModel(this.skeleton.rightUpperArm, this.offsetMesh.rightUpperArmEngselOffset), [1, 0.78, 0.94], GL.TRIANGLES)
-        drawObject(this.meshes.armEngselMesh.solid.buffers, makeModel(this.skeleton.leftUpperArm, this.offsetMesh.leftLowerArmEngselOffset), [1, 0.78, 0.94], GL.TRIANGLES)
-        drawObject(this.meshes.armEngselMesh.solid.buffers, makeModel(this.skeleton.rightUpperArm, this.offsetMesh.rightLowerArmEngselOffset), [1, 0.78, 0.94], GL.TRIANGLES)
-        drawObject(this.meshes.armEngselMesh.solid.buffers, makeModel(this.skeleton.leftLowerArm, this.offsetMesh.leftPalmArmEngselOffset), [1, 0.78, 0.94], GL.TRIANGLES)
-        drawObject(this.meshes.armEngselMesh.solid.buffers, makeModel(this.skeleton.rightLowerArm, this.offsetMesh.rightPalmArmEngselOffset), [1, 0.78, 0.94], GL.TRIANGLES)
-        drawObject(this.meshes.palmBaseMesh.solid.buffers, makeModel(this.skeleton.leftPalmArm, this.offsetMesh.leftPalmOffset), [1, 0.78, 0.94], GL.TRIANGLES)
-        drawObject(this.meshes.palmBaseMesh.solid.buffers, makeModel(this.skeleton.rightPalmArm, this.offsetMesh.rightPalmOffset), [1, 0.78, 0.94], GL.TRIANGLES)
-        // drawObject(this.meshes.upperPalmMesh.solid.buffers, makeModel(this.skeleton.leftPalmArm, this.offsetMesh.leftUpperPalmOffset), [1, 0.78, 0.94], GL.TRIANGLES)
+        let leftUpperArm = applyBoneOffsetMesh(this.skeleton.leftUpperArm, this.meshes.upperArmMesh.solid.mesh, this.offsetMesh.leftUpperArmOffset);
+        drawObject(leftUpperArm.buffers, leftUpperArm.modelMatrix, [1, 0.78, 0.94], GL.TRIANGLES);
 
+        let rightUpperArm = applyBoneOffsetMesh(this.skeleton.rightUpperArm, this.meshes.upperArmMesh.solid.mesh, this.offsetMesh.rightUpperArmOffset);
+        drawObject(rightUpperArm.buffers, rightUpperArm.modelMatrix, [1, 0.78, 0.94], GL.TRIANGLES);
+
+        let leftLowerArm = applyBoneOffsetMesh(this.skeleton.leftLowerArm, this.meshes.lowerArmMesh.solid.mesh, this.offsetMesh.leftLowerArmOffset);
+        drawObject(leftLowerArm.buffers, leftLowerArm.modelMatrix, [1, 0.78, 0.94], GL.TRIANGLES);
+
+        let rightLowerArm = applyBoneOffsetMesh(this.skeleton.rightLowerArm, this.meshes.lowerArmMesh.solid.mesh, this.offsetMesh.rightLowerArmOffset);
+        drawObject(rightLowerArm.buffers, rightLowerArm.modelMatrix, [1, 0.78, 0.94], GL.TRIANGLES);
+
+        let leftUpperEngsel = applyBoneOffsetMesh(this.skeleton.leftUpperArm, this.meshes.armEngselMesh.solid.mesh, this.offsetMesh.leftUpperArmEngselOffset);
+        drawObject(leftUpperEngsel.buffers, leftUpperEngsel.modelMatrix, [1, 0.78, 0.94], GL.TRIANGLES);
+
+        let rightUpperEngsel = applyBoneOffsetMesh(this.skeleton.rightUpperArm, this.meshes.armEngselMesh.solid.mesh, this.offsetMesh.rightUpperArmEngselOffset);
+        drawObject(rightUpperEngsel.buffers, rightUpperEngsel.modelMatrix, [1, 0.78, 0.94], GL.TRIANGLES);
+
+        let leftLowerEngsel = applyBoneOffsetMesh(this.skeleton.leftUpperArm, this.meshes.armEngselMesh.solid.mesh, this.offsetMesh.leftLowerArmEngselOffset);
+        drawObject(leftLowerEngsel.buffers, leftLowerEngsel.modelMatrix, [1, 0.78, 0.94], GL.TRIANGLES);
+
+        let rightLowerEngsel = applyBoneOffsetMesh(this.skeleton.rightUpperArm, this.meshes.armEngselMesh.solid.mesh, this.offsetMesh.rightLowerArmEngselOffset);
+        drawObject(rightLowerEngsel.buffers, rightLowerEngsel.modelMatrix, [1, 0.78, 0.94], GL.TRIANGLES);
+
+        let leftPalmEngsel = applyBoneOffsetMesh(this.skeleton.leftLowerArm, this.meshes.armEngselMesh.solid.mesh, this.offsetMesh.leftPalmArmEngselOffset);
+        drawObject(leftPalmEngsel.buffers, leftPalmEngsel.modelMatrix, [1, 0.78, 0.94], GL.TRIANGLES);
+
+        let rightPalmEngsel = applyBoneOffsetMesh(this.skeleton.rightLowerArm, this.meshes.armEngselMesh.solid.mesh, this.offsetMesh.rightPalmArmEngselOffset);
+        drawObject(rightPalmEngsel.buffers, rightPalmEngsel.modelMatrix, [1, 0.78, 0.94], GL.TRIANGLES);
+
+        let leftPalm = applyBoneOffsetMesh(this.skeleton.leftPalmArm, this.meshes.palmBaseMesh.solid.mesh, this.offsetMesh.leftPalmOffset);
+        drawObject(leftPalm.buffers, leftPalm.modelMatrix, [1, 0.78, 0.94], GL.TRIANGLES);
+
+        let rightPalm = applyBoneOffsetMesh(this.skeleton.rightPalmArm, this.meshes.palmBaseMesh.solid.mesh, this.offsetMesh.rightPalmOffset);
+        drawObject(rightPalm.buffers, rightPalm.modelMatrix, [1, 0.78, 0.94], GL.TRIANGLES);
 
         // BOTTOM AND LEG
-        drawObject(this.meshes.buttMesh.solid.buffers, makeModel(this.skeleton.butt, this.offsetMesh.buttOffset), [0.157, 0.392, 0.522], GL.TRIANGLES)
-        drawObject(this.meshes.legMesh.solid.buffers, makeModel(this.skeleton.leftLeg, this.offsetMesh.leftLegOffset), [0.157, 0.392, 0.522], GL.TRIANGLES)
-        drawObject(this.meshes.legMesh.solid.buffers, makeModel(this.skeleton.rightLeg, this.offsetMesh.rightLegOffset), [0.157, 0.392, 0.522], GL.TRIANGLES)
+        let butt = applyBoneOffsetMesh(this.skeleton.butt, this.meshes.buttMesh.solid.mesh, this.offsetMesh.buttOffset);
+        drawObject(butt.buffers, butt.modelMatrix, [0.157, 0.392, 0.522], GL.TRIANGLES);
+
+        let leftLeg = applyBoneOffsetMesh(this.skeleton.leftLeg, this.meshes.legMesh.solid.mesh, this.offsetMesh.leftLegOffset);
+        drawObject(leftLeg.buffers, leftLeg.modelMatrix, [0.157, 0.392, 0.522], GL.TRIANGLES);
+
+        let rightLeg = applyBoneOffsetMesh(this.skeleton.rightLeg, this.meshes.legMesh.solid.mesh, this.offsetMesh.rightLegOffset);
+        drawObject(rightLeg.buffers, rightLeg.modelMatrix, [0.157, 0.392, 0.522], GL.TRIANGLES);
 
     }
 }
