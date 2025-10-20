@@ -241,6 +241,7 @@ export class mime_jr extends BaseCharacter {
 
 
         }
+        
 
         this.updateWorld();
 
