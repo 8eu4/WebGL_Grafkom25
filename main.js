@@ -41,12 +41,8 @@ function main() {
     // TODO Make HUMAN Object
     const human = new HumanCharacter();
 
-<<<<<<< Updated upstream
-    // const mime_jr1 = new mime_jr();
-=======
     const mime_jr1 = new mime_jr();
     const mr_rime1 = new mr_rime();
->>>>>>> Stashed changes
 
     // Make other object here!
     //..
@@ -64,14 +60,9 @@ function main() {
         // -------------- update bone localSpecs ----------------
         // TODO
         // Animate HUMAN
-<<<<<<< Updated upstream
-        human.animate(time)
-        // mime_jr1.animate(time);
-=======
         // human.animate(time)
         // mime_jr1.animate(time);
         mr_rime1.animate(time);
->>>>>>> Stashed changes
 
         // Animate here!
         //..
@@ -79,27 +70,17 @@ function main() {
         // ------------------------ Draw Object -------------
         // TODO
         // Draw HUMAN
-<<<<<<< Updated upstream
-        human.drawObject();
-        // mime_jr1.drawObject();
-=======
         // human.drawObject();
         // mime_jr1.drawObject();
         mr_rime1.drawObject();
->>>>>>> Stashed changes
 
         // Draw here!
         //..
 
 
         // REVIEW --------------- Draw bone ----------------
-<<<<<<< Updated upstream
-        // human.root.drawHelper();
-        // mime_jr1.root.drawHelper(); // dibuang jika tidak mau lihat bone
-=======
         // mime_jr1.root.drawHelper(); // dibuang jika tidak mau lihat bone
         mr_rime1.root.drawHelper(); // dibuang jika tidak mau lihat bone
->>>>>>> Stashed changes
 
         GL.flush();
         requestAnimationFrame(animate);
@@ -113,9 +94,9 @@ window.addEventListener("load", main);
 function otherFactor() {
     // REVIEW ---------- Camera ----------
     camera = {
-        yaw: 0,       // rotasi horizontal (sekitar Y axis)
-        pitch: Math.PI / 30,     // rotasi vertical (sekitar X axis)
-        radius: 10.0,   // jarak kamera dari target
+        yaw: Math.PI ,       // rotasi horizontal (sekitar Y axis)
+        pitch: Math.PI,     // rotasi vertical (sekitar X axis)
+        radius: 15.0,   // jarak kamera dari target
         target: [0, 0, 0] // pusat pandangan
     };
     let isDragging = false;
@@ -213,25 +194,53 @@ function otherFactor() {
         varying vec2 vUV;
 
         void main(void) {
-            if (uIsBone) {
-                gl_FragColor = uColorBone; // bypass lighting
-                return;
-            }
+    if (uIsBone) {
+        gl_FragColor = uColorBone;
+        return;
+    }
 
-            vec3 N = normalize(vNormal);
-            vec3 L = normalize(-uLightDir);
-            vec3 V = normalize(uViewPos - vPos);
-            vec3 R = reflect(-L, N);
+    // DEBUG: tampilkan normal sebagai warna
+    vec3 N = normalize(vNormal);
+    gl_FragColor = vec4((N * 0.5) + 0.5, 1.0);
 
-            vec3 ambient = uAmbient * uColor;
-            float diff = max(dot(N, L), 0.0);
-            vec3 diffuse = diff * uLightColor * uColor;
-            float spec = pow(max(dot(R, V), 0.0), 32.0);
-            vec3 specular = spec * uLightColor;
+    // --- komentar dulu lighting aslinya ---
+    /*
+    vec3 L = normalize(-uLightDir);
+    vec3 V = normalize(uViewPos - vPos);
+    vec3 R = reflect(-L, N);
 
-            vec3 result = ambient + diffuse + specular;
-            gl_FragColor = vec4(result, 1.0);
-        }`;
+    vec3 ambient = uAmbient * uColor;
+    float diff = max(dot(N, L), 0.0);
+    vec3 diffuse = diff * uLightColor * uColor;
+    float spec = pow(max(dot(R, V), 0.0), 32.0);
+    vec3 specular = spec * uLightColor;
+
+    vec3 result = ambient + diffuse + specular;
+    gl_FragColor = vec4(result, 1.0);
+    */
+}
+
+        // void main(void) {
+        //     if (uIsBone) {
+        //         gl_FragColor = uColorBone; // bypass lighting
+        //         return;
+        //     }
+
+        //     vec3 N = normalize(vNormal);
+        //     vec3 L = normalize(-uLightDir);
+        //     vec3 V = normalize(uViewPos - vPos);
+        //     vec3 R = reflect(-L, N);
+
+        //     vec3 ambient = uAmbient * uColor;
+        //     float diff = max(dot(N, L), 0.0);
+        //     vec3 diffuse = diff * uLightColor * uColor;
+        //     float spec = pow(max(dot(R, V), 0.0), 32.0);
+        //     vec3 specular = spec * uLightColor;
+
+        //     vec3 result = ambient + diffuse + specular;
+        //     gl_FragColor = vec4(result, 1.0);
+        // }
+        `;
 
     function compile(src, type) {
         const sh = GL.createShader(type);
@@ -267,7 +276,7 @@ function otherFactor() {
     const uLightDir = GL.getUniformLocation(prog, "uLightDir");
     const uAmbient = GL.getUniformLocation(prog, "uAmbient");
     const uLightColor = GL.getUniformLocation(prog, "uLightColor");
-    const uViewPos = GL.getUniformLocation(prog, "uViewPos");
+    uViewPos = GL.getUniformLocation(prog, "uViewPos");
 
     // arah cahaya dari kanan-atas-depan
     function sphericalToDir(azimuth, elevation) {
@@ -277,12 +286,12 @@ function otherFactor() {
             Math.cos(elevation) * Math.sin(azimuth)
         ];
     }
-    const az = Math.PI / 2;    // ..° horizontal
+    const az = Math.PI / 4;    // ..° horizontal
     const el = Math.PI / -1.5;    // ..° vertical
     const lightDir = sphericalToDir(az, el);
     GL.uniform3fv(uLightDir, lightDir);
     GL.uniform3fv(uAmbient, [0.5, 0.5, 0.5]);
-    GL.uniform3fv(uLightColor, [1.0, 1.0, 1.0]); // putih
+    GL.uniform3fv(uLightColor, [0.5, 0.5, 0.5]); // putih
 
     uMVP = GL.getUniformLocation(prog, "uMVP");
     uColor = GL.getUniformLocation(prog, "uColor");

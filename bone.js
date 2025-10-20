@@ -157,3 +157,26 @@ export function getAxisAngle(bone, axisLabel) {
     }
     return 0;
 }
+
+// Apply bone transform + offset lalu bufferkan mesh
+export function applyBoneOffsetMesh(bone, mesh, offset = null) {
+    // --- ambil worldMatrix dari bone
+    const world = bone.getWorldMatrix();
+
+    // --- kalau ada offset matrix, gabungkan
+    let finalModel = mat4.create();
+    if (offset) {
+        mat4.multiply(finalModel, world, offset);
+    } else {
+        mat4.copy(finalModel, world);
+    }
+
+    // --- buat buffer dari mesh (pakai util yg sama dengan createMesh)
+    const buffers = MeshUtils.createMeshBuffers(GL, mesh, attribs);
+
+    // return object siap digambar
+    return {
+        buffers,
+        modelMatrix: finalModel
+    };
+}
