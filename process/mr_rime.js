@@ -58,15 +58,15 @@ export class mr_rime extends BaseCharacter {
         this.meshes = {
             // face: face,
 
-            upperFaceMesh: upperFaceMesh,
-            lowerFaceMesh: lowerFaceMesh,
-            middleFaceMesh: middleFaceMesh,
+            // upperFaceMesh: upperFaceMesh,
+            // lowerFaceMesh: lowerFaceMesh,
+            // middleFaceMesh: middleFaceMesh,
 
-            blackHeadMesh: createMesh(MeshUtils.generateEllipsoid, { params: [1.9, 1.665, 1.665, 32, 64], cutOptions: { percent: 0.83, axis: "z", keep: "lower" }, deferBuffer: false }),
+            // blackHeadMesh: createMesh(MeshUtils.generateEllipsoid, { params: [1.9, 1.665, 1.665, 32, 64], cutOptions: { percent: 0.83, axis: "z", keep: "lower" }, deferBuffer: false }),
 
-            lowerHat: createMesh(MeshUtils.generateTorus, { params: [1.7, 0.33, 64, 24], deferBuffer: false }),
+            // lowerHat: createMesh(MeshUtils.generateTorus, { params: [1.7, 0.33, 64, 24], deferBuffer: false }),
 
-            upperHat: upperHat,
+            // upperHat: upperHat,
 
             // upperFace: createMesh(MeshUtils.generateEllipticParaboloid, 
             //     { params: [1, 1, 2, 32, 16], deferBuffer: false }),
@@ -82,11 +82,20 @@ export class mr_rime extends BaseCharacter {
             // #6 Buffer mesh hasil mesh ke GPU
             // holeOnCubeMesh: MeshUtils.createMeshBuffers(GL, holeOnCubeMesh, attribs)
 
+            lowerBody:createMesh(MeshUtils.generateEllipsoid, { params: [2, 2, 2, 32, 64], deferBuffer: false }),
+            whiteBelly:createMesh(MeshUtils.generateEllipsoid, { params: [1.2, 1.2, 0.5, 32, 64], deferBuffer: false }),
+            blackClothes:createMesh(MeshUtils.generateEllipsoid, { params: [1.6, 1.9, 1.6, 32, 64], deferBuffer: false }),
+            backblackClothes:createMesh(MeshUtils.generateEllipsoid, { params: [2, 2, 1.5, 32, 64], deferBuffer: false }),
+            backblackClothes:createMesh(MeshUtils.generateEllipsoid, { params: [2, 2, 1.5, 32, 64], deferBuffer: false }),
+            redBelly:createMesh(MeshUtils.generateEllipsoid, { params: [1.1, 0.8, 0.5, 32, 64], deferBuffer: false }),
+            yellowBelly:createMesh(MeshUtils.generateEllipsoid, { params: [0.2, 0.4, 0.2, 32, 64], deferBuffer: false }),
+            upperBody:createMesh(MeshUtils.generateTorus, { params: [0.45, 0.9, 64, 64], deferBuffer: false }),
+
         }
 
         this.skeleton = {
             hip: this.createBone("hip", null, { translate: [0, 0, 0] }),
-            spine: this.createBone("spine", "hip", { translate: [0, 0, 0] }),
+            spine: this.createBone("spine", "hip", { translate: [0, 2, 0] }),
             upperBody: this.createBone("upperBody", "spine", { translate: [0, 0.7, 0] }),
             head: this.createBone("head", "upperBody", { translate: [0, 0, 0] }),
 
@@ -97,38 +106,38 @@ export class mr_rime extends BaseCharacter {
         this.updateWorld();
 
         this.offsetMesh = {
-            blackHeadOffset: createModelMatrix({
-                translate: [0, 0, -0.2]
-            }),
-            faceOffset: createModelMatrix({
-                translate: [0, 0, 0],
-                scale: [1, 1, 1]
-            }),
-            upperHatOffset: createModelMatrix({
-                translate: [0, 0.3, -0.2]
-            }),
-            lowerHatOffset: createModelMatrix({
-                translate: [0, 0, -0.2]
-            }),
+            // blackHeadOffset: createModelMatrix({
+            //     translate: [0, 0, -0.2]
+            // }),
+            // faceOffset: createModelMatrix({
+            //     translate: [0, 0, 0],
+            //     scale: [1, 1, 1]
+            // }),
+            // upperHatOffset: createModelMatrix({
+            //     translate: [0, 0.3, -0.2]
+            // }),
+            // lowerHatOffset: createModelMatrix({
+            //     translate: [0, 0, -0.2]
+            // }),
 
-            upperFaceOffset: createModelMatrix({
-                translate: [0, 0.6, 0],
-                scale: [1, 0.6, 1]
-            }),
+            // upperFaceOffset: createModelMatrix({
+            //     translate: [0, 0.6, 0],
+            //     scale: [1, 0.6, 1]
+            // }),
 
-            lowerFaceOffset: createModelMatrix({
-                translate: [0, -0.6, 0],
-                rotate: [
-                    { axis: "y", angle: Math.PI },
-                    // {axis: "y", angle: Math.PI },
-                ],
-                scale: [1, 0.6, 1]
-            }),
+            // lowerFaceOffset: createModelMatrix({
+            //     translate: [0, -0.6, 0],
+            //     rotate: [
+            //         { axis: "y", angle: Math.PI },
+            //         // {axis: "y", angle: Math.PI },
+            //     ],
+            //     scale: [1, 0.6, 1]
+            // }),
 
-            middleFaceOffset: createModelMatrix({
-                translate: [0, 0, 0],
-                scale: [1, 0.6, 1]
-            }),
+            // middleFaceOffset: createModelMatrix({
+            //     translate: [0, 0, 0],
+            //     scale: [1, 0.6, 1]
+            // }),
 
             // hatCloserOffset: createModelMatrix({
             //     translate: [0, 2.3, -0.2],
@@ -137,6 +146,33 @@ export class mr_rime extends BaseCharacter {
             //     ]
             // }),
 
+            lowerBodyOffset:createModelMatrix({
+                translate:[0,0,0]
+            }),
+            upperBodyOffset:createModelMatrix({
+                translate:[0,0.4,0]
+            }),
+            whiteBellyOffset:createModelMatrix({
+                translate:[0,0,1.5]
+            }),
+            leftblackClothesOffset:createModelMatrix({
+                translate:[-0.5,0.24,0.3]
+            }),
+            rightblackClothesOffset:createModelMatrix({
+                translate:[0.5,0.24,0.3]
+            }),
+            backblackClothesOffset:createModelMatrix({
+                translate:[0,0,-0.5]
+            }),
+            redBellyOffset:createModelMatrix({
+                translate:[0,0,1.7]
+            }),
+            leftyellowBellyOffset:createModelMatrix({
+                translate:[-1.5,0,1.4]
+            }),
+            rightyellowBellyOffset:createModelMatrix({
+                translate:[1.5,0,1.4]
+            }),
 
 
 
@@ -152,17 +188,17 @@ export class mr_rime extends BaseCharacter {
     drawObject() {
         // drawObject(this.meshes.blackHeadMesh.solid.buffers, makeModel(this.skeleton.head, this.offsetMesh.blackHeadOffset), [0.353, 0.329, 0.427], GL.TRIANGLES)
 
-        // Upper face
-        let upper = applyBoneOffsetMesh(this.skeleton.head, this.meshes.upperFaceMesh.solid.mesh, this.offsetMesh.upperFaceOffset);
-        drawObject(upper.buffers, upper.modelMatrix, [0.965, 0.843, 0.867], GL.TRIANGLES);
+        // // Upper face
+        // let upper = applyBoneOffsetMesh(this.skeleton.head, this.meshes.upperFaceMesh.solid.mesh, this.offsetMesh.upperFaceOffset);
+        // drawObject(upper.buffers, upper.modelMatrix, [0.965, 0.843, 0.867], GL.TRIANGLES);
 
-        // Middle face
-        let middle = applyBoneOffsetMesh(this.skeleton.head, this.meshes.middleFaceMesh.solid.mesh, this.offsetMesh.middleFaceOffset);
-        drawObject(middle.buffers, middle.modelMatrix, [0.965, 0.843, 0.867], GL.TRIANGLES);
+        // // Middle face
+        // let middle = applyBoneOffsetMesh(this.skeleton.head, this.meshes.middleFaceMesh.solid.mesh, this.offsetMesh.middleFaceOffset);
+        // drawObject(middle.buffers, middle.modelMatrix, [0.965, 0.843, 0.867], GL.TRIANGLES);
 
-        // Lower face
-        let lower = applyBoneOffsetMesh(this.skeleton.head, this.meshes.lowerFaceMesh.solid.mesh, this.offsetMesh.lowerFaceOffset);
-        drawObject(lower.buffers, lower.modelMatrix, [0.965, 0.843, 0.867], GL.TRIANGLES);
+        // // Lower face
+        // let lower = applyBoneOffsetMesh(this.skeleton.head, this.meshes.lowerFaceMesh.solid.mesh, this.offsetMesh.lowerFaceOffset);
+        // drawObject(lower.buffers, lower.modelMatrix, [0.965, 0.843, 0.867], GL.TRIANGLES);
 
         // drawObject(this.meshes.lowerHat.solid.buffers, makeModel(this.skeleton.hat, this.offsetMesh.lowerHatOffset), [0.353, 0.329, 0.427], GL.TRIANGLES)
         // drawObject(this.meshes.upperHat.solid.buffers, makeModel(this.skeleton.hat, this.offsetMesh.upperHatOffset), [0.353, 0.329, 0.427], GL.TRIANGLES)
@@ -172,5 +208,15 @@ export class mr_rime extends BaseCharacter {
 
         // drawObject(this.meshes.face.solid.buffers, makeModel(this.skeleton.head, this.offsetMesh.lowerFaceOffset), [0.965, 0.843, 0.867], GL.TRIANGLES)
 
+        drawObject(this.meshes.lowerBody.solid.buffers, makeModel(this.skeleton.hip, this.offsetMesh.lowerBodyOffset),  [0.286, 0.412, 0.682], GL.TRIANGLES)
+        drawObject(this.meshes.whiteBelly.solid.buffers, makeModel(this.skeleton.hip, this.offsetMesh.whiteBellyOffset),  [1,1,1], GL.TRIANGLES)
+        drawObject(this.meshes.blackClothes.solid.buffers, makeModel(this.skeleton.hip, this.offsetMesh.leftblackClothesOffset),  [0.392, 0.361, 0.467], GL.TRIANGLES)
+        drawObject(this.meshes.blackClothes.solid.buffers, makeModel(this.skeleton.hip, this.offsetMesh.rightblackClothesOffset),  [0.392, 0.361, 0.467], GL.TRIANGLES)
+        drawObject(this.meshes.backblackClothes.solid.buffers, makeModel(this.skeleton.hip, this.offsetMesh.backblackClothesOffset),  [0.392, 0.361, 0.467], GL.TRIANGLES)
+        drawObject(this.meshes.redBelly.solid.buffers, makeModel(this.skeleton.hip, this.offsetMesh.redBellyOffset),  [0.529, 0.267, 0.345], GL.TRIANGLES)
+        drawObject(this.meshes.yellowBelly.solid.buffers, makeModel(this.skeleton.hip, this.offsetMesh.leftyellowBellyOffset),  [0.957, 0.816, 0.463], GL.TRIANGLES)
+        drawObject(this.meshes.yellowBelly.solid.buffers, makeModel(this.skeleton.hip, this.offsetMesh.rightyellowBellyOffset),  [0.957, 0.816, 0.463], GL.TRIANGLES)
+        drawObject(this.meshes.upperBody.solid.buffers, makeModel(this.skeleton.spine, this.offsetMesh.upperBodyOffset),  [0.392, 0.361, 0.467], GL.TRIANGLES)
+    
     }
 }
