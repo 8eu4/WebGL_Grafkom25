@@ -379,6 +379,11 @@ export class mime_jr extends BaseCharacter {
     }
 
     animate(time) {
+
+        const yOffset = 0.15;
+        const xOffset = 0;
+        const zOffset = 0;
+
         // --- DURASI BARU ---
         const totalDuration = 20000;
         const introDurationSeconds = 8;
@@ -411,7 +416,7 @@ export class mime_jr extends BaseCharacter {
                 const smoothProgress = Math.sin(phaseT * Math.PI / 2);
 
                 // Gerakan maju (Translate)
-                const currentPos = [0, 0, phaseT * walkDistance];
+                const currentPos = [xOffset, yOffset, zOffset + phaseT * walkDistance];
                 this.skeleton.neck.setLocalSpec({ translate: currentPos });
 
                 // Gerakan kaki berjalan
@@ -433,7 +438,7 @@ export class mime_jr extends BaseCharacter {
                 const smoothProgress = Math.sin(phaseT * Math.PI / 2);
                 const walkDistance = 1.5;
 
-                this.skeleton.neck.setLocalSpec({ translate: [0, 0, walkDistance] });
+                this.skeleton.neck.setLocalSpec({ translate: [xOffset, yOffset, zOffset + walkDistance] });
 
                 // Kaki berhenti
                 setLocalRotationAxisAngle(this.skeleton.leftLeg, 'x', 0);
@@ -461,7 +466,7 @@ export class mime_jr extends BaseCharacter {
                 const walkDistance = 1.5;
 
                 // Gerakan mundur (Translate)
-                const currentPos = [0, 0, walkDistance * (1 - phaseT)];
+                const currentPos = [xOffset, yOffset, zOffset + walkDistance * (1 - phaseT)];
                 this.skeleton.neck.setLocalSpec({ translate: currentPos });
 
                 // Gerakan kaki berjalan mundur
@@ -477,7 +482,7 @@ export class mime_jr extends BaseCharacter {
                 const phaseT = (t_intro - walkBackwardEnd) / (1 - walkBackwardEnd);
                 const smoothProgress = Math.sin(phaseT * Math.PI / 2);
 
-                this.skeleton.neck.setLocalSpec({ translate: [0, 0, 0] });
+                this.skeleton.neck.setLocalSpec({ translate: [xOffset, yOffset, zOffset] });
                 setLocalRotationAxisAngle(this.skeleton.leftLeg, 'x', 0);
                 setLocalRotationAxisAngle(this.skeleton.rightLeg, 'x', 0);
 
@@ -509,13 +514,13 @@ export class mime_jr extends BaseCharacter {
             const maxLegAngle = -Math.PI / 4;
             const maxPalmAngle = Math.PI / 2;
             const maxBodyTiltAngle = Math.PI / 10;
-            const pivotPoint = [0.5, -2.7, 0];
+            const pivotPoint = [0.5 + xOffset, -2.7 + yOffset, 0 + zOffset];
             const phase1End = 2 / 12;
             const phase2End = 6 / 12;
             const phase3End = 10 / 12;
 
             // Reset posisi translate dari intro
-            this.skeleton.neck.setLocalSpec({ translate: [0, 0, 0] });
+            this.skeleton.neck.setLocalSpec({ translate: [xOffset, yOffset, zOffset] });
 
             if (t_dance < phase1End) {
                 const phaseT = t_dance / phase1End;
