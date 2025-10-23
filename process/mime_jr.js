@@ -241,7 +241,6 @@ export class mime_jr extends BaseCharacter {
 
 
         }
-        
 
         this.updateWorld();
 
@@ -379,191 +378,330 @@ export class mime_jr extends BaseCharacter {
         }
     }
 
-   animate(time) {
-    // Total durasi untuk satu siklus animasi (misalnya 4000ms atau 4 detik)
-    const duration = 12000;
+    // animate(time) {
+    //     // Total durasi untuk satu siklus animasi (misalnya 4000ms atau 4 detik)
+    //     const duration = 12000;
 
-    // Buat 't' sebagai nilai yang berulang dari 0.0 hingga 1.0 sesuai durasi
-    const t = (time % duration) / duration;
+    //     // Buat 't' sebagai nilai yang berulang dari 0.0 hingga 1.0 sesuai durasi
+    //     const t = (time % duration) / duration;
 
-    // Tentukan sudut maksimum untuk gerakan
-    const maxArmAngle = Math.PI / 10; // Lengan naik 90 derajat
-    const maxArmForwardAngle = Math.PI / 4;
-    const maxLegAngle = -Math.PI / 4; // Kaki kanan ke belakang 72 derajat
-    const maxPalmAngle = Math.PI / 2;
-    // --- TAMBAHAN BARU: Sudut maksimal tubuh condong ke depan ---
-    const maxBodyTiltAngle = Math.PI / 10; // Condong sekitar 15 derajat
+    //     // Tentukan sudut maksimum untuk gerakan
+    //     const maxArmAngle = Math.PI / 10; // Lengan naik 90 derajat
+    //     const maxArmForwardAngle = Math.PI / 4;
+    //     const maxLegAngle = -Math.PI / 4; // Kaki kanan ke belakang 72 derajat
+    //     const maxPalmAngle = Math.PI / 2;
+    //     // --- TAMBAHAN BARU: Sudut maksimal tubuh condong ke depan ---
+    //     const maxBodyTiltAngle = Math.PI / 10; // Condong sekitar 15 derajat
 
-    // Definisikan batas waktu untuk setiap fase (dalam skala 0.0 - 1.0)
-    const phase1End = 2 / 12;  // 2 detik
-    const phase2End = 6 / 12;  // 2 + 4 detik
-    const phase3End = 10 / 12; // 6 + 4 detik
+    //     // Definisikan batas waktu untuk setiap fase (dalam skala 0.0 - 1.0)
+    //     const phase1End = 2 / 12;  // 2 detik
+    //     const phase2End = 6 / 12;  // 2 + 4 detik
+    //     const phase3End = 10 / 12; // 6 + 4 detik
 
-    // --- Logika Fase Animasi ---
-    if (t < phase1End) {
-        // === FASE 1: 0 -> 2 detik (Angkat Lengan & Kaki) ===
-        const phaseT = t / phase1End;
-        const smoothProgress = Math.sin(phaseT * Math.PI / 2);
+    //     // --- Logika Fase Animasi ---
+    //     if (t < phase1End) {
+    //         // === FASE 1: 0 -> 2 detik (Angkat Lengan & Kaki) ===
+    //         const phaseT = t / phase1End;
+    //         const smoothProgress = Math.sin(phaseT * Math.PI / 2);
 
-        const currentArmAngle = smoothProgress * maxArmAngle;
-        const currentLegAngle = smoothProgress * maxLegAngle;
+    //         const currentArmAngle = smoothProgress * maxArmAngle;
+    //         const currentLegAngle = smoothProgress * maxLegAngle;
 
-        // Terapkan rotasi ke tulang yang sesuai
-        setLocalRotationAxisAngle(this.skeleton.leftUpperArm, 'z', -currentArmAngle);
-        setLocalRotationAxisAngle(this.skeleton.rightUpperArm, 'z', currentArmAngle);
-        setLocalRotationAxisAngle(this.skeleton.leftLowerArm, 'z', -currentArmAngle);
-        setLocalRotationAxisAngle(this.skeleton.rightLowerArm, 'z', currentArmAngle);
-        setLocalRotationAxisAngle(this.skeleton.leftPalmArm, 'z', -currentArmAngle);
-        setLocalRotationAxisAngle(this.skeleton.rightPalmArm, 'z', currentArmAngle);
-        setLocalRotationAxisAngle(this.skeleton.rightLeg, 'x', -currentLegAngle); // Arahnya sudah benar dari maxLegAngle
+    //         // Terapkan rotasi ke tulang yang sesuai
+    //         setLocalRotationAxisAngle(this.skeleton.leftUpperArm, 'z', -currentArmAngle);
+    //         setLocalRotationAxisAngle(this.skeleton.rightUpperArm, 'z', currentArmAngle);
+    //         setLocalRotationAxisAngle(this.skeleton.leftLowerArm, 'z', -currentArmAngle);
+    //         setLocalRotationAxisAngle(this.skeleton.rightLowerArm, 'z', currentArmAngle);
+    //         setLocalRotationAxisAngle(this.skeleton.leftPalmArm, 'z', -currentArmAngle);
+    //         setLocalRotationAxisAngle(this.skeleton.rightPalmArm, 'z', currentArmAngle);
+    //         setLocalRotationAxisAngle(this.skeleton.rightLeg, 'x', -currentLegAngle); // Arahnya sudah benar dari maxLegAngle
 
-        // Pastikan rotasi badan tetap 0 di fase ini
-        setLocalRotationAxisAngle(this.skeleton.neck, 'y', 0);
-        // === PERBAIKAN: Gunakan 'shoulder' untuk memastikan tubuh tegak ===
-        setLocalRotationAxisAngle(this.skeleton.shoulder, 'x', 0);
+    //         // Pastikan rotasi badan tetap 0 di fase ini
+    //         setLocalRotationAxisAngle(this.skeleton.neck, 'y', 0);
+    //         // === PERBAIKAN: Gunakan 'shoulder' untuk memastikan tubuh tegak ===
+    //         setLocalRotationAxisAngle(this.skeleton.shoulder, 'x', 0);
 
-    } else if (t < phase2End) {
-        // === FASE 2: 2 -> 6 detik (Putaran Pertama + Condong ke Depan) ===
-        const phaseT = (t - phase1End) / (phase2End - phase1End);
-        
-        // === PERBAIKAN: Gunakan 'shoulder' untuk condong ke depan ===
-        const smoothTiltProgress = Math.sin(phaseT * Math.PI / 2);
-        const currentBodyTilt = smoothTiltProgress * maxBodyTiltAngle;
-        setLocalRotationAxisAngle(this.skeleton.shoulder, 'x', currentBodyTilt);
+    //     } else if (t < phase2End) {
+    //         // === FASE 2: 2 -> 6 detik (Putaran Pertama + Condong ke Depan) ===
+    //         const phaseT = (t - phase1End) / (phase2End - phase1End);
+            
+    //         // === PERBAIKAN: Gunakan 'shoulder' untuk condong ke depan ===
+    //         const smoothTiltProgress = Math.sin(phaseT * Math.PI / 2);
+    //         const currentBodyTilt = smoothTiltProgress * maxBodyTiltAngle;
+    //         setLocalRotationAxisAngle(this.skeleton.shoulder, 'x', currentBodyTilt);
 
-        // Berputar 2 kali (4 * PI)
-        const bodyRotation = phaseT * 4 * Math.PI;
+    //         // Berputar 2 kali (4 * PI)
+    //         const bodyRotation = phaseT * 4 * Math.PI;
 
-        // Kunci posisi lengan dan kaki tetap terangkat
-        setLocalRotationAxisAngle(this.skeleton.leftUpperArm, 'z', -maxArmAngle);
-        setLocalRotationAxisAngle(this.skeleton.rightUpperArm, 'z', maxArmAngle);
-        setLocalRotationAxisAngle(this.skeleton.leftLowerArm, 'z', -maxArmAngle);
-        setLocalRotationAxisAngle(this.skeleton.rightLowerArm, 'z', maxArmAngle);
-        setLocalRotationAxisAngle(this.skeleton.leftPalmArm, 'z', -maxArmAngle);
-        setLocalRotationAxisAngle(this.skeleton.rightPalmArm, 'z', maxArmAngle);
-        setLocalRotationAxisAngle(this.skeleton.rightLeg, 'x', -maxLegAngle);
+    //         // Kunci posisi lengan dan kaki tetap terangkat
+    //         setLocalRotationAxisAngle(this.skeleton.leftUpperArm, 'z', -maxArmAngle);
+    //         setLocalRotationAxisAngle(this.skeleton.rightUpperArm, 'z', maxArmAngle);
+    //         setLocalRotationAxisAngle(this.skeleton.leftLowerArm, 'z', -maxArmAngle);
+    //         setLocalRotationAxisAngle(this.skeleton.rightLowerArm, 'z', maxArmAngle);
+    //         setLocalRotationAxisAngle(this.skeleton.leftPalmArm, 'z', -maxArmAngle);
+    //         setLocalRotationAxisAngle(this.skeleton.rightPalmArm, 'z', maxArmAngle);
+    //         setLocalRotationAxisAngle(this.skeleton.rightLeg, 'x', -maxLegAngle);
 
-        // Terapkan rotasi badan
-        setLocalRotationAxisAngle(this.skeleton.neck, 'y', bodyRotation);
+    //         // Terapkan rotasi badan
+    //         setLocalRotationAxisAngle(this.skeleton.neck, 'y', bodyRotation);
 
-    } else if (t < phase3End) {
-        // === FASE 3: 6 -> 10 detik (Putaran Kedua + Transisi Lengan + Tubuh Tegak) ===
-        const phaseT = (t - phase2End) / (phase3End - phase2End);
-        const smoothProgress = Math.sin(phaseT * Math.PI / 2);
+    //     } else if (t < phase3End) {
+    //         // === FASE 3: 6 -> 10 detik (Putaran Kedua + Transisi Lengan + Tubuh Tegak) ===
+    //         const phaseT = (t - phase2End) / (phase3End - phase2End);
+    //         const smoothProgress = Math.sin(phaseT * Math.PI / 2);
 
-        // === PERBAIKAN: Gunakan 'shoulder' untuk tegak kembali ===
-        const currentBodyTilt = (1 - smoothProgress) * maxBodyTiltAngle;
-        setLocalRotationAxisAngle(this.skeleton.shoulder, 'x', currentBodyTilt);
+    //         // === PERBAIKAN: Gunakan 'shoulder' untuk tegak kembali ===
+    //         const currentBodyTilt = (1 - smoothProgress) * maxBodyTiltAngle;
+    //         setLocalRotationAxisAngle(this.skeleton.shoulder, 'x', currentBodyTilt);
 
-        // Lanjutkan putaran dari 2x ke 4x (dari 4*PI ke 8*PI)
-        const bodyRotation = (4 * Math.PI) + (phaseT * 4 * Math.PI);
+    //         // Lanjutkan putaran dari 2x ke 4x (dari 4*PI ke 8*PI)
+    //         const bodyRotation = (4 * Math.PI) + (phaseT * 4 * Math.PI);
 
-        // Sambil berputar, lengan turun dan bergerak maju
-        const currentArmAngle = (1 - smoothProgress) * maxArmAngle;
-        const currentArmForwardAngle = smoothProgress * maxArmForwardAngle;
-        const currentPalmAngle = smoothProgress * maxPalmAngle;
+    //         // Sambil berputar, lengan turun dan bergerak maju
+    //         const currentArmAngle = (1 - smoothProgress) * maxArmAngle;
+    //         const currentArmForwardAngle = smoothProgress * maxArmForwardAngle;
+    //         const currentPalmAngle = smoothProgress * maxPalmAngle;
 
-        // Terapkan gerakan lengan turun (Z-axis)
-        setLocalRotationAxisAngle(this.skeleton.leftUpperArm, 'z', -currentArmAngle);
-        setLocalRotationAxisAngle(this.skeleton.rightUpperArm, 'z', currentArmAngle);
-        setLocalRotationAxisAngle(this.skeleton.leftLowerArm, 'z', -currentArmAngle);
-        setLocalRotationAxisAngle(this.skeleton.rightLowerArm, 'z', currentArmAngle);
-        setLocalRotationAxisAngle(this.skeleton.leftPalmArm, 'z', -currentArmAngle);
-        setLocalRotationAxisAngle(this.skeleton.rightPalmArm, 'z', currentArmAngle);
+    //         // Terapkan gerakan lengan turun (Z-axis)
+    //         setLocalRotationAxisAngle(this.skeleton.leftUpperArm, 'z', -currentArmAngle);
+    //         setLocalRotationAxisAngle(this.skeleton.rightUpperArm, 'z', currentArmAngle);
+    //         setLocalRotationAxisAngle(this.skeleton.leftLowerArm, 'z', -currentArmAngle);
+    //         setLocalRotationAxisAngle(this.skeleton.rightLowerArm, 'z', currentArmAngle);
+    //         setLocalRotationAxisAngle(this.skeleton.leftPalmArm, 'z', -currentArmAngle);
+    //         setLocalRotationAxisAngle(this.skeleton.rightPalmArm, 'z', currentArmAngle);
 
-        // Terapkan gerakan lengan maju (Y-axis)
-        setLocalRotationAxisAngle(this.skeleton.leftUpperArm, 'y', currentArmForwardAngle);
-        setLocalRotationAxisAngle(this.skeleton.rightUpperArm, 'y', -currentArmForwardAngle);
-        setLocalRotationAxisAngle(this.skeleton.leftLowerArm, 'y', currentArmForwardAngle);
-        setLocalRotationAxisAngle(this.skeleton.rightLowerArm, 'y', -currentArmForwardAngle);
-        setLocalRotationAxisAngle(this.skeleton.leftPalmArm, 'y', currentArmForwardAngle);
-        setLocalRotationAxisAngle(this.skeleton.rightPalmArm, 'y', -currentArmForwardAngle);
+    //         // Terapkan gerakan lengan maju (Y-axis)
+    //         setLocalRotationAxisAngle(this.skeleton.leftUpperArm, 'y', currentArmForwardAngle);
+    //         setLocalRotationAxisAngle(this.skeleton.rightUpperArm, 'y', -currentArmForwardAngle);
+    //         setLocalRotationAxisAngle(this.skeleton.leftLowerArm, 'y', currentArmForwardAngle);
+    //         setLocalRotationAxisAngle(this.skeleton.rightLowerArm, 'y', -currentArmForwardAngle);
+    //         setLocalRotationAxisAngle(this.skeleton.leftPalmArm, 'y', currentArmForwardAngle);
+    //         setLocalRotationAxisAngle(this.skeleton.rightPalmArm, 'y', -currentArmForwardAngle);
 
-        setLocalRotationAxisAngle(this.skeleton.leftPalmArm, 'x', currentPalmAngle);
-        setLocalRotationAxisAngle(this.skeleton.rightPalmArm, 'x', -currentPalmAngle);
+    //         setLocalRotationAxisAngle(this.skeleton.leftPalmArm, 'x', currentPalmAngle);
+    //         setLocalRotationAxisAngle(this.skeleton.rightPalmArm, 'x', -currentPalmAngle);
 
-        // Kunci posisi kaki tetap terangkat
-        setLocalRotationAxisAngle(this.skeleton.rightLeg, 'x', -maxLegAngle);
+    //         // Kunci posisi kaki tetap terangkat
+    //         setLocalRotationAxisAngle(this.skeleton.rightLeg, 'x', -maxLegAngle);
 
-        // Terapkan rotasi badan
-        setLocalRotationAxisAngle(this.skeleton.neck, 'y', bodyRotation);
+    //         // Terapkan rotasi badan
+    //         setLocalRotationAxisAngle(this.skeleton.neck, 'y', bodyRotation);
 
-    } else {
-        // === FASE 4: 10 -> 12 detik (Reset Posisi) ===
-        const phaseT = (t - phase3End) / (1 - phase3End);
-        const smoothProgress = Math.sin(phaseT * Math.PI / 2);
+    //     } else {
+    //         // === FASE 4: 10 -> 12 detik (Reset Posisi) ===
+    //         const phaseT = (t - phase3End) / (1 - phase3End);
+    //         const smoothProgress = Math.sin(phaseT * Math.PI / 2);
 
-        // Kaki turun dan Tangan kembali ke samping
-        const currentLegAngle = (1 - smoothProgress) * maxLegAngle;
-        const currentArmForwardAngle = (1 - smoothProgress) * maxArmForwardAngle;
-        const currentPalmAngle = (1 - smoothProgress) * maxPalmAngle;
+    //         // Kaki turun dan Tangan kembali ke samping
+    //         const currentLegAngle = (1 - smoothProgress) * maxLegAngle;
+    //         const currentArmForwardAngle = (1 - smoothProgress) * maxArmForwardAngle;
+    //         const currentPalmAngle = (1 - smoothProgress) * maxPalmAngle;
 
-        // Kunci lengan di posisi bawah (Z-axis = 0)
-        setLocalRotationAxisAngle(this.skeleton.leftUpperArm, 'z', 0);
-        setLocalRotationAxisAngle(this.skeleton.rightUpperArm, 'z', 0);
+    //         // Kunci lengan di posisi bawah (Z-axis = 0)
+    //         setLocalRotationAxisAngle(this.skeleton.leftUpperArm, 'z', 0);
+    //         setLocalRotationAxisAngle(this.skeleton.rightUpperArm, 'z', 0);
 
-        // Gerakkan lengan kembali ke samping (Y-axis)
-        setLocalRotationAxisAngle(this.skeleton.leftUpperArm, 'y', currentArmForwardAngle);
-        setLocalRotationAxisAngle(this.skeleton.rightUpperArm, 'y', -currentArmForwardAngle);
-        setLocalRotationAxisAngle(this.skeleton.leftLowerArm, 'y', currentArmForwardAngle);
-        setLocalRotationAxisAngle(this.skeleton.rightLowerArm, 'y', -currentArmForwardAngle);
-        setLocalRotationAxisAngle(this.skeleton.leftPalmArm, 'y', currentArmForwardAngle);
-        setLocalRotationAxisAngle(this.skeleton.rightPalmArm, 'y', -currentArmForwardAngle);
+    //         // Gerakkan lengan kembali ke samping (Y-axis)
+    //         setLocalRotationAxisAngle(this.skeleton.leftUpperArm, 'y', currentArmForwardAngle);
+    //         setLocalRotationAxisAngle(this.skeleton.rightUpperArm, 'y', -currentArmForwardAngle);
+    //         setLocalRotationAxisAngle(this.skeleton.leftLowerArm, 'y', currentArmForwardAngle);
+    //         setLocalRotationAxisAngle(this.skeleton.rightLowerArm, 'y', -currentArmForwardAngle);
+    //         setLocalRotationAxisAngle(this.skeleton.leftPalmArm, 'y', currentArmForwardAngle);
+    //         setLocalRotationAxisAngle(this.skeleton.rightPalmArm, 'y', -currentArmForwardAngle);
 
-        setLocalRotationAxisAngle(this.skeleton.leftPalmArm, 'x', currentPalmAngle);
-        setLocalRotationAxisAngle(this.skeleton.rightPalmArm, 'x', -currentPalmAngle);
-        
-        // Gerakkan kaki turun
-        setLocalRotationAxisAngle(this.skeleton.rightLeg, 'x', currentLegAngle);
+    //         setLocalRotationAxisAngle(this.skeleton.leftPalmArm, 'x', currentPalmAngle);
+    //         setLocalRotationAxisAngle(this.skeleton.rightPalmArm, 'x', -currentPalmAngle);
+            
+    //         // Gerakkan kaki turun
+    //         setLocalRotationAxisAngle(this.skeleton.rightLeg, 'x', currentLegAngle);
 
-        // Pastikan badan berhenti berputar dan menghadap depan
-        setLocalRotationAxisAngle(this.skeleton.neck, 'y', 0); // Reset ke 0
-        // === PERBAIKAN: Gunakan 'shoulder' untuk memastikan tubuh tegak sempurna ===
-        setLocalRotationAxisAngle(this.skeleton.shoulder, 'x', 0);
+    //         // Pastikan badan berhenti berputar dan menghadap depan
+    //         setLocalRotationAxisAngle(this.skeleton.neck, 'y', 0); // Reset ke 0
+    //         // === PERBAIKAN: Gunakan 'shoulder' untuk memastikan tubuh tegak sempurna ===
+    //         setLocalRotationAxisAngle(this.skeleton.shoulder, 'x', 0);
+    //     }
+
+    //     // 💡 PENTING! Selalu panggil updateWorld() setelah memodifikasi tulang
+    //     this.updateWorld();
+    // }
+
+    animate(time) {
+        // Total durasi untuk satu siklus animasi (misalnya 4000ms atau 4 detik)
+        const duration = 12000;
+
+        // Buat 't' sebagai nilai yang berulang dari 0.0 hingga 1.0 sesuai durasi
+        const t = (time % duration) / duration;
+
+        // Tentukan sudut maksimum untuk gerakan
+        const maxArmAngle = Math.PI / 10; // Lengan naik 90 derajat
+        const maxArmForwardAngle = Math.PI / 4;
+        const maxLegAngle = -Math.PI / 4; // Kaki kanan ke belakang 72 derajat
+        const maxPalmAngle = Math.PI / 2;
+        // --- TAMBAHAN BARU: Sudut maksimal tubuh condong ke depan ---
+        const maxBodyTiltAngle = Math.PI / 10; // Condong sekitar 15 derajat
+
+        // --- PERUBAHAN BARU: Tentukan titik pivot di posisi kaki kiri ---
+        // Posisi ini dihitung dari root (neck) ke leftLeg
+        // neck -> shoulder -> hip -> butt -> leftLeg
+        // y: -0.3  -1.0  -0.1  -1.3 = -2.7
+        // x: 0     0     0     -0.5 = -0.5
+        const pivotPoint = [0.5, -2.7, 0];
+
+        // Definisikan batas waktu untuk setiap fase (dalam skala 0.0 - 1.0)
+        const phase1End = 2 / 12;  // 2 detik
+        const phase2End = 6 / 12;  // 2 + 4 detik
+        const phase3End = 10 / 12; // 6 + 4 detik
+
+        // --- Logika Fase Animasi ---
+        if (t < phase1End) {
+            // === FASE 1: 0 -> 2 detik (Angkat Lengan & Kaki) ===
+            const phaseT = t / phase1End;
+            const smoothProgress = Math.sin(phaseT * Math.PI / 2);
+
+            const currentArmAngle = smoothProgress * maxArmAngle;
+            const currentLegAngle = smoothProgress * maxLegAngle;
+
+            // Terapkan rotasi ke tulang yang sesuai
+            setLocalRotationAxisAngle(this.skeleton.leftUpperArm, 'z', -currentArmAngle);
+            setLocalRotationAxisAngle(this.skeleton.rightUpperArm, 'z', currentArmAngle);
+            setLocalRotationAxisAngle(this.skeleton.leftLowerArm, 'z', -currentArmAngle);
+            setLocalRotationAxisAngle(this.skeleton.rightLowerArm, 'z', currentArmAngle);
+            setLocalRotationAxisAngle(this.skeleton.leftPalmArm, 'z', -currentArmAngle);
+            setLocalRotationAxisAngle(this.skeleton.rightPalmArm, 'z', currentArmAngle);
+            setLocalRotationAxisAngle(this.skeleton.rightLeg, 'x', -currentLegAngle);
+
+            // Pastikan rotasi badan tetap 0 di fase ini
+            // --- PERUBAHAN: Hapus semua rotasi di neck ---
+            this.skeleton.neck.setLocalSpec({ rotate: [] });
+            setLocalRotationAxisAngle(this.skeleton.shoulder, 'x', 0);
+
+        } else if (t < phase2End) {
+            // === FASE 2: 2 -> 6 detik (Putaran Pertama + Condong ke Depan) ===
+            const phaseT = (t - phase1End) / (phase2End - phase1End);
+            
+            const smoothTiltProgress = Math.sin(phaseT * Math.PI / 2);
+            const currentBodyTilt = smoothTiltProgress * maxBodyTiltAngle;
+            setLocalRotationAxisAngle(this.skeleton.shoulder, 'x', currentBodyTilt);
+
+            // Berputar 2 kali (4 * PI)
+            const bodyRotation = phaseT * 4 * Math.PI;
+
+            // Kunci posisi lengan dan kaki tetap terangkat
+            setLocalRotationAxisAngle(this.skeleton.leftUpperArm, 'z', -maxArmAngle);
+            setLocalRotationAxisAngle(this.skeleton.rightUpperArm, 'z', maxArmAngle);
+            setLocalRotationAxisAngle(this.skeleton.leftLowerArm, 'z', -maxArmAngle);
+            setLocalRotationAxisAngle(this.skeleton.rightLowerArm, 'z', maxArmAngle);
+            setLocalRotationAxisAngle(this.skeleton.leftPalmArm, 'z', -maxArmAngle);
+            setLocalRotationAxisAngle(this.skeleton.rightPalmArm, 'z', maxArmAngle);
+            setLocalRotationAxisAngle(this.skeleton.rightLeg, 'x', -maxLegAngle);
+
+            // --- PERUBAHAN: Terapkan rotasi pada sumbu arbitrer ---
+            const arbitraryRotation = {
+                angle: -bodyRotation,
+                axis: { point: pivotPoint, dir: [0, 1, 0] }
+            };
+            this.skeleton.neck.setLocalSpec({ rotate: [arbitraryRotation] });
+
+        } else if (t < phase3End) {
+            // === FASE 3: 6 -> 10 detik (Putaran Kedua + Transisi Lengan + Tubuh Tegak) ===
+            const phaseT = (t - phase2End) / (phase3End - phase2End);
+            const smoothProgress = Math.sin(phaseT * Math.PI / 2);
+
+            const currentBodyTilt = (1 - smoothProgress) * maxBodyTiltAngle;
+            setLocalRotationAxisAngle(this.skeleton.shoulder, 'x', currentBodyTilt);
+
+            // Lanjutkan putaran dari 2x ke 4x (dari 4*PI ke 8*PI)
+            const bodyRotation = (4 * Math.PI) + (phaseT * 4 * Math.PI);
+
+            // Sambil berputar, lengan turun dan bergerak maju
+            const currentArmAngle = (1 - smoothProgress) * maxArmAngle;
+            const currentArmForwardAngle = smoothProgress * maxArmForwardAngle;
+            const currentPalmAngle = smoothProgress * maxPalmAngle;
+
+           // Terapkan gerakan lengan turun (Z-axis)
+            setLocalRotationAxisAngle(this.skeleton.leftUpperArm, 'z', -currentArmAngle);
+            setLocalRotationAxisAngle(this.skeleton.rightUpperArm, 'z', currentArmAngle);
+            setLocalRotationAxisAngle(this.skeleton.leftLowerArm, 'z', -currentArmAngle);
+            setLocalRotationAxisAngle(this.skeleton.rightLowerArm, 'z', currentArmAngle);
+            setLocalRotationAxisAngle(this.skeleton.leftPalmArm, 'z', -currentArmAngle);
+            setLocalRotationAxisAngle(this.skeleton.rightPalmArm, 'z', currentArmAngle);
+
+            // Terapkan gerakan lengan maju (Y-axis)
+            setLocalRotationAxisAngle(this.skeleton.leftUpperArm, 'y', currentArmForwardAngle);
+            setLocalRotationAxisAngle(this.skeleton.rightUpperArm, 'y', -currentArmForwardAngle);
+            setLocalRotationAxisAngle(this.skeleton.leftLowerArm, 'y', currentArmForwardAngle);
+            setLocalRotationAxisAngle(this.skeleton.rightLowerArm, 'y', -currentArmForwardAngle);
+            setLocalRotationAxisAngle(this.skeleton.leftPalmArm, 'y', currentArmForwardAngle);
+            setLocalRotationAxisAngle(this.skeleton.rightPalmArm, 'y', -currentArmForwardAngle);
+
+            // Kunci posisi kaki tetap terangkat
+            setLocalRotationAxisAngle(this.skeleton.rightLeg, 'x', -maxLegAngle);
+
+            // --- PERUBAHAN: Terapkan rotasi pada sumbu arbitrer ---
+            const arbitraryRotation = {
+                angle: -bodyRotation,
+                axis: { point: pivotPoint, dir: [0, 1, 0] }
+            };
+            this.skeleton.neck.setLocalSpec({ rotate: [arbitraryRotation] });
+
+        } else {
+            // === FASE 4: 10 -> 12 detik (Reset Posisi) ===
+            const phaseT = (t - phase3End) / (1 - phase3End);
+            const smoothProgress = Math.sin(phaseT * Math.PI / 2);
+
+           // Kaki turun dan Tangan kembali ke samping
+            const currentLegAngle = (1 - smoothProgress) * maxLegAngle;
+            const currentArmForwardAngle = (1 - smoothProgress) * maxArmForwardAngle;
+            const currentPalmAngle = (1 - smoothProgress) * maxPalmAngle;
+
+            // Kunci lengan di posisi bawah (Z-axis = 0)
+            setLocalRotationAxisAngle(this.skeleton.leftUpperArm, 'z', 0);
+            setLocalRotationAxisAngle(this.skeleton.rightUpperArm, 'z', 0);
+
+            // Gerakkan lengan kembali ke samping (Y-axis)
+            setLocalRotationAxisAngle(this.skeleton.leftUpperArm, 'y', currentArmForwardAngle);
+            setLocalRotationAxisAngle(this.skeleton.rightUpperArm, 'y', -currentArmForwardAngle);
+            setLocalRotationAxisAngle(this.skeleton.leftLowerArm, 'y', currentArmForwardAngle);
+            setLocalRotationAxisAngle(this.skeleton.rightLowerArm, 'y', -currentArmForwardAngle);
+            setLocalRotationAxisAngle(this.skeleton.leftPalmArm, 'y', currentArmForwardAngle);
+            setLocalRotationAxisAngle(this.skeleton.rightPalmArm, 'y', -currentArmForwardAngle);
+
+            setLocalRotationAxisAngle(this.skeleton.leftPalmArm, 'x', currentPalmAngle);
+            setLocalRotationAxisAngle(this.skeleton.rightPalmArm, 'x', -currentPalmAngle);
+            
+            // Gerakkan kaki turun
+            setLocalRotationAxisAngle(this.skeleton.rightLeg, 'x', currentLegAngle);
+
+            // Pastikan badan berhenti berputar dan menghadap depan
+            // --- PERUBAHAN: Hapus semua rotasi di neck ---
+            this.skeleton.neck.setLocalSpec({ rotate: [] });
+            setLocalRotationAxisAngle(this.skeleton.shoulder, 'x', 0);
+        }
+
+        // 💡 PENTING! Selalu panggil updateWorld() setelah memodifikasi tulang
+        this.updateWorld();
     }
-
-    // 💡 PENTING! Selalu panggil updateWorld() setelah memodifikasi tulang
-    this.updateWorld();
-}
 
 
     drawObject() {
 
         // BODY
-        let body = applyBoneOffsetMesh(this.skeleton.shoulder, this.meshes.bodyMesh.solid.mesh, this.offsetMesh.bodyOffset);
-        drawObject(body.buffers, body.modelMatrix, [1, 0.78, 0.94], GL.TRIANGLES)
+        drawObject(this.meshes.bodyMesh.solid.buffers, makeModel(this.skeleton.shoulder, this.offsetMesh.bodyOffset), [1, 0.78, 0.94], GL.TRIANGLES)
 
         // HEAD AND HAIR
-        let head = applyBoneOffsetMesh(this.skeleton.head, this.meshes.headMesh.solid.mesh, this.offsetMesh.headOffset);
-        drawObject(head.buffers, head.modelMatrix, [1, 0.78, 0.94], GL.TRIANGLES);
-
-        let leftHair = applyBoneOffsetMesh(this.skeleton.lefthair, this.meshes.leftHairMesh.solid.mesh, this.offsetMesh.lefthairOffset);
-        drawObject(leftHair.buffers, leftHair.modelMatrix, [0.157, 0.392, 0.522], GL.TRIANGLES);
-
-        let rightHair = applyBoneOffsetMesh(this.skeleton.righthair, this.meshes.rightHairMesh.solid.mesh, this.offsetMesh.righthairOffset);
-        drawObject(rightHair.buffers, rightHair.modelMatrix, [0.157, 0.392, 0.522], GL.TRIANGLES);
-
-        let backHair = applyBoneOffsetMesh(this.skeleton.backhair, this.meshes.backHairMesh.solid.mesh, this.offsetMesh.backhairOffset);
-        drawObject(backHair.buffers, backHair.modelMatrix, [0.157, 0.392, 0.522], GL.TRIANGLES);
-
-        let topHair = applyBoneOffsetMesh(this.skeleton.tophair, this.meshes.topHairMesh.solid.mesh, this.offsetMesh.tophairOffset);
-        drawObject(topHair.buffers, topHair.modelMatrix, [0.157, 0.392, 0.522], GL.TRIANGLES);
-
-        let hat = applyBoneOffsetMesh(this.skeleton.hat, this.meshes.hatMesh.solid.mesh, this.offsetMesh.hatOffset);
-        drawObject(hat.buffers, hat.modelMatrix, [0.157, 0.392, 0.522], GL.TRIANGLES);
-
-        let hatCover = applyBoneOffsetMesh(this.skeleton.hat, this.meshes.hatCoverMesh.solid.mesh, this.offsetMesh.hatCoverOffset);
-        drawObject(hatCover.buffers, hatCover.modelMatrix, [0.157, 0.392, 0.522], GL.TRIANGLES);
-
-        let coneHat = applyBoneOffsetMesh(this.skeleton.hat, this.meshes.coneHatMesh.solid.mesh, this.offsetMesh.hatConeOffset);
-        drawObject(coneHat.buffers, coneHat.modelMatrix, [0.157, 0.392, 0.522], GL.TRIANGLES);
-
-        let topHat = applyBoneOffsetMesh(this.skeleton.hat, this.meshes.topHatMesh.solid.mesh, this.offsetMesh.topHatOffset);
-        drawObject(topHat.buffers, topHat.modelMatrix, [1, 1, 1], GL.TRIANGLES);
+        drawObject(this.meshes.headMesh.solid.buffers, makeModel(this.skeleton.head, this.offsetMesh.headOffset), [1, 0.78, 0.94], GL.TRIANGLES)
+        drawObject(this.meshes.leftHairMesh.solid.buffers, makeModel(this.skeleton.lefthair, this.offsetMesh.lefthairOffset), [0.157, 0.392, 0.522], GL.TRIANGLES)
+        drawObject(this.meshes.rightHairMesh.solid.buffers, makeModel(this.skeleton.righthair, this.offsetMesh.righthairOffset), [0.157, 0.392, 0.522], GL.TRIANGLES)
+        drawObject(this.meshes.backHairMesh.solid.buffers, makeModel(this.skeleton.backhair, this.offsetMesh.backhairOffset), [0.157, 0.392, 0.522], GL.TRIANGLES)
+        drawObject(this.meshes.topHairMesh.solid.buffers, makeModel(this.skeleton.tophair, this.offsetMesh.tophairOffset), [0.157, 0.392, 0.522], GL.TRIANGLES)
+        drawObject(this.meshes.hatMesh.solid.buffers, makeModel(this.skeleton.hat, this.offsetMesh.hatOffset), [0.157, 0.392, 0.522], GL.TRIANGLES)
+        drawObject(this.meshes.hatMesh.solid.buffers, makeModel(this.skeleton.hat, this.offsetMesh.hatOffset), [0.157, 0.392, 0.522], GL.TRIANGLES)
+        drawObject(this.meshes.hatCoverMesh.solid.buffers, makeModel(this.skeleton.hat, this.offsetMesh.hatCoverOffset), [0.157, 0.392, 0.522], GL.TRIANGLES)
+        drawObject(this.meshes.coneHatMesh.solid.buffers, makeModel(this.skeleton.hat, this.offsetMesh.hatConeOffset), [0.157, 0.392, 0.522], GL.TRIANGLES)
+        drawObject(this.meshes.topHatMesh.solid.buffers, makeModel(this.skeleton.hat, this.offsetMesh.topHatOffset), [1, 1, 1], GL.TRIANGLES)
 
         // NOSE
-        let nose = applyBoneOffsetMesh(this.skeleton.nose, this.meshes.noseMesh.solid.mesh, this.offsetMesh.noseOffset);
-        drawObject(nose.buffers, nose.modelMatrix, [1, 0.3, 0.46], GL.TRIANGLES);
+        drawObject(this.meshes.noseMesh.solid.buffers, makeModel(this.skeleton.nose, this.offsetMesh.noseOffset), [1, 0.3, 0.46], GL.TRIANGLES)
 
         // === GAMBAR MULUT 2D ===
         const mouthModel = makeModel(this.skeleton.mouth, this.offsetMesh.mouthOffset);
@@ -592,98 +730,43 @@ export class mime_jr extends BaseCharacter {
 
 
         // EYES
-        let leftEye = applyBoneOffsetMesh(this.skeleton.lefteye, this.meshes.eyeMesh.solid.mesh, this.offsetMesh.lefteyeOffset);
-        drawObject(leftEye.buffers, leftEye.modelMatrix, [0, 0, 0], GL.TRIANGLES);
-
-        let rightEye = applyBoneOffsetMesh(this.skeleton.righteye, this.meshes.eyeMesh.solid.mesh, this.offsetMesh.righteyeOffset);
-        drawObject(rightEye.buffers, rightEye.modelMatrix, [0, 0, 0], GL.TRIANGLES);
-
-        let leftDotEye = applyBoneOffsetMesh(this.skeleton.leftdotteye, this.meshes.doteyeMesh.solid.mesh, this.offsetMesh.leftdoteyeOffset);
-        drawObject(leftDotEye.buffers, leftDotEye.modelMatrix, [1, 1, 1], GL.TRIANGLES);
-
-        let rightDotEye = applyBoneOffsetMesh(this.skeleton.rightdotteye, this.meshes.doteyeMesh.solid.mesh, this.offsetMesh.rightdoteyeOffset);
-        drawObject(rightDotEye.buffers, rightDotEye.modelMatrix, [1, 1, 1], GL.TRIANGLES);
+        drawObject(this.meshes.eyeMesh.solid.buffers, makeModel(this.skeleton.lefteye, this.offsetMesh.lefteyeOffset), [0, 0, 0], GL.TRIANGLES)
+        drawObject(this.meshes.eyeMesh.solid.buffers, makeModel(this.skeleton.righteye, this.offsetMesh.righteyeOffset), [0, 0, 0], GL.TRIANGLES)
+        drawObject(this.meshes.doteyeMesh.solid.buffers, makeModel(this.skeleton.leftdotteye, this.offsetMesh.leftdoteyeOffset), [1, 1, 1], GL.TRIANGLES)
+        drawObject(this.meshes.doteyeMesh.solid.buffers, makeModel(this.skeleton.rightdotteye, this.offsetMesh.rightdoteyeOffset), [1, 1, 1], GL.TRIANGLES)
 
         // BODY BALL
-        let ball1 = applyBoneOffsetMesh(this.skeleton.ball1, this.meshes.ballMesh.solid.mesh, this.offsetMesh.ballOffset);
-        drawObject(ball1.buffers, ball1.modelMatrix, [1, 0.78, 0.94], GL.TRIANGLES);
-
-        let ball2 = applyBoneOffsetMesh(this.skeleton.ball2, this.meshes.ballMesh.solid.mesh, this.offsetMesh.ballOffset);
-        drawObject(ball2.buffers, ball2.modelMatrix, [1, 0.78, 0.94], GL.TRIANGLES);
-
-        let ball3 = applyBoneOffsetMesh(this.skeleton.ball3, this.meshes.ballMesh.solid.mesh, this.offsetMesh.ballOffset);
-        drawObject(ball3.buffers, ball3.modelMatrix, [1, 0.78, 0.94], GL.TRIANGLES);
-
-        let ball4 = applyBoneOffsetMesh(this.skeleton.ball4, this.meshes.ballMesh.solid.mesh, this.offsetMesh.ballOffset);
-        drawObject(ball4.buffers, ball4.modelMatrix, [1, 0.78, 0.94], GL.TRIANGLES);
-
-        let ball5 = applyBoneOffsetMesh(this.skeleton.ball5, this.meshes.ballMesh.solid.mesh, this.offsetMesh.ballOffset);
-        drawObject(ball5.buffers, ball5.modelMatrix, [1, 0.78, 0.94], GL.TRIANGLES);
-
-        let ball6 = applyBoneOffsetMesh(this.skeleton.ball6, this.meshes.ballMesh.solid.mesh, this.offsetMesh.ballOffset);
-        drawObject(ball6.buffers, ball6.modelMatrix, [1, 0.78, 0.94], GL.TRIANGLES);
-
-        let ball7 = applyBoneOffsetMesh(this.skeleton.ball7, this.meshes.ballMesh.solid.mesh, this.offsetMesh.ballOffset);
-        drawObject(ball7.buffers, ball7.modelMatrix, [1, 0.78, 0.94], GL.TRIANGLES);
-
-        let ball8 = applyBoneOffsetMesh(this.skeleton.ball8, this.meshes.ballMesh.solid.mesh, this.offsetMesh.ballOffset);
-        drawObject(ball8.buffers, ball8.modelMatrix, [1, 0.78, 0.94], GL.TRIANGLES);
-
-        let hip = applyBoneOffsetMesh(this.skeleton.hip, this.meshes.redDotBodyMesh.solid.mesh, this.offsetMesh.redDotBodyOffset);
-        drawObject(hip.buffers, hip.modelMatrix, [1, 0.3, 0.46], GL.TRIANGLES);
+        drawObject(this.meshes.ballMesh.solid.buffers, makeModel(this.skeleton.ball1, this.offsetMesh.ballOffset), [1, 0.78, 0.94], GL.TRIANGLES)
+        drawObject(this.meshes.ballMesh.solid.buffers, makeModel(this.skeleton.ball2, this.offsetMesh.ballOffset), [1, 0.78, 0.94], GL.TRIANGLES)
+        drawObject(this.meshes.ballMesh.solid.buffers, makeModel(this.skeleton.ball3, this.offsetMesh.ballOffset), [1, 0.78, 0.94], GL.TRIANGLES)
+        drawObject(this.meshes.ballMesh.solid.buffers, makeModel(this.skeleton.ball4, this.offsetMesh.ballOffset), [1, 0.78, 0.94], GL.TRIANGLES)
+        drawObject(this.meshes.ballMesh.solid.buffers, makeModel(this.skeleton.ball5, this.offsetMesh.ballOffset), [1, 0.78, 0.94], GL.TRIANGLES)
+        drawObject(this.meshes.ballMesh.solid.buffers, makeModel(this.skeleton.ball6, this.offsetMesh.ballOffset), [1, 0.78, 0.94], GL.TRIANGLES)
+        drawObject(this.meshes.ballMesh.solid.buffers, makeModel(this.skeleton.ball7, this.offsetMesh.ballOffset), [1, 0.78, 0.94], GL.TRIANGLES)
+        drawObject(this.meshes.ballMesh.solid.buffers, makeModel(this.skeleton.ball8, this.offsetMesh.ballOffset), [1, 0.78, 0.94], GL.TRIANGLES)
+        drawObject(this.meshes.redDotBodyMesh.solid.buffers, makeModel(this.skeleton.hip, this.offsetMesh.redDotBodyOffset), [1, 0.3, 0.46], GL.TRIANGLES)
 
         // ARMS
-        let leftUpperArm = applyBoneOffsetMesh(this.skeleton.leftUpperArm, this.meshes.upperArmMesh.solid.mesh, this.offsetMesh.leftUpperArmOffset);
-        drawObject(leftUpperArm.buffers, leftUpperArm.modelMatrix, [1, 0.78, 0.94], GL.TRIANGLES);
+        drawObject(this.meshes.upperArmMesh.solid.buffers, makeModel(this.skeleton.leftUpperArm, this.offsetMesh.leftUpperArmOffset), [1, 0.78, 0.94], GL.TRIANGLES)
+        drawObject(this.meshes.upperArmMesh.solid.buffers, makeModel(this.skeleton.rightUpperArm, this.offsetMesh.rightUpperArmOffset), [1, 0.78, 0.94], GL.TRIANGLES)
+        drawObject(this.meshes.lowerArmMesh.solid.buffers, makeModel(this.skeleton.leftLowerArm, this.offsetMesh.leftLowerArmOffset), [1, 0.78, 0.94], GL.TRIANGLES)
+        drawObject(this.meshes.lowerArmMesh.solid.buffers, makeModel(this.skeleton.rightLowerArm, this.offsetMesh.rightLowerArmOffset), [1, 0.78, 0.94], GL.TRIANGLES)
+        drawObject(this.meshes.armEngselMesh.solid.buffers, makeModel(this.skeleton.leftUpperArm, this.offsetMesh.leftUpperArmEngselOffset), [1, 0.78, 0.94], GL.TRIANGLES)
+        drawObject(this.meshes.armEngselMesh.solid.buffers, makeModel(this.skeleton.rightUpperArm, this.offsetMesh.rightUpperArmEngselOffset), [1, 0.78, 0.94], GL.TRIANGLES)
+        drawObject(this.meshes.armEngselMesh.solid.buffers, makeModel(this.skeleton.leftUpperArm, this.offsetMesh.leftLowerArmEngselOffset), [1, 0.78, 0.94], GL.TRIANGLES)
+        drawObject(this.meshes.armEngselMesh.solid.buffers, makeModel(this.skeleton.rightUpperArm, this.offsetMesh.rightLowerArmEngselOffset), [1, 0.78, 0.94], GL.TRIANGLES)
+        drawObject(this.meshes.armEngselMesh.solid.buffers, makeModel(this.skeleton.leftLowerArm, this.offsetMesh.leftPalmArmEngselOffset), [1, 0.78, 0.94], GL.TRIANGLES)
+        drawObject(this.meshes.armEngselMesh.solid.buffers, makeModel(this.skeleton.rightLowerArm, this.offsetMesh.rightPalmArmEngselOffset), [1, 0.78, 0.94], GL.TRIANGLES)
+        drawObject(this.meshes.palmBaseMesh.solid.buffers, makeModel(this.skeleton.leftPalmArm, this.offsetMesh.leftPalmOffset), [1, 0.78, 0.94], GL.TRIANGLES)
+        drawObject(this.meshes.palmBaseMesh.solid.buffers, makeModel(this.skeleton.rightPalmArm, this.offsetMesh.rightPalmOffset), [1, 0.78, 0.94], GL.TRIANGLES)
+        // drawObject(this.meshes.upperPalmMesh.solid.buffers, makeModel(this.skeleton.leftPalmArm, this.offsetMesh.leftUpperPalmOffset), [1, 0.78, 0.94], GL.TRIANGLES)
 
-        let rightUpperArm = applyBoneOffsetMesh(this.skeleton.rightUpperArm, this.meshes.upperArmMesh.solid.mesh, this.offsetMesh.rightUpperArmOffset);
-        drawObject(rightUpperArm.buffers, rightUpperArm.modelMatrix, [1, 0.78, 0.94], GL.TRIANGLES);
-
-        let leftLowerArm = applyBoneOffsetMesh(this.skeleton.leftLowerArm, this.meshes.lowerArmMesh.solid.mesh, this.offsetMesh.leftLowerArmOffset);
-        drawObject(leftLowerArm.buffers, leftLowerArm.modelMatrix, [1, 0.78, 0.94], GL.TRIANGLES);
-
-        let rightLowerArm = applyBoneOffsetMesh(this.skeleton.rightLowerArm, this.meshes.lowerArmMesh.solid.mesh, this.offsetMesh.rightLowerArmOffset);
-        drawObject(rightLowerArm.buffers, rightLowerArm.modelMatrix, [1, 0.78, 0.94], GL.TRIANGLES);
-
-        let leftUpperEngsel = applyBoneOffsetMesh(this.skeleton.leftUpperArm, this.meshes.armEngselMesh.solid.mesh, this.offsetMesh.leftUpperArmEngselOffset);
-        drawObject(leftUpperEngsel.buffers, leftUpperEngsel.modelMatrix, [1, 0.78, 0.94], GL.TRIANGLES);
-
-        let rightUpperEngsel = applyBoneOffsetMesh(this.skeleton.rightUpperArm, this.meshes.armEngselMesh.solid.mesh, this.offsetMesh.rightUpperArmEngselOffset);
-        drawObject(rightUpperEngsel.buffers, rightUpperEngsel.modelMatrix, [1, 0.78, 0.94], GL.TRIANGLES);
-
-        let leftLowerEngsel = applyBoneOffsetMesh(this.skeleton.leftUpperArm, this.meshes.armEngselMesh.solid.mesh, this.offsetMesh.leftLowerArmEngselOffset);
-        drawObject(leftLowerEngsel.buffers, leftLowerEngsel.modelMatrix, [1, 0.78, 0.94], GL.TRIANGLES);
-
-        let rightLowerEngsel = applyBoneOffsetMesh(this.skeleton.rightUpperArm, this.meshes.armEngselMesh.solid.mesh, this.offsetMesh.rightLowerArmEngselOffset);
-        drawObject(rightLowerEngsel.buffers, rightLowerEngsel.modelMatrix, [1, 0.78, 0.94], GL.TRIANGLES);
-
-        let leftPalmEngsel = applyBoneOffsetMesh(this.skeleton.leftLowerArm, this.meshes.armEngselMesh.solid.mesh, this.offsetMesh.leftPalmArmEngselOffset);
-        drawObject(leftPalmEngsel.buffers, leftPalmEngsel.modelMatrix, [1, 0.78, 0.94], GL.TRIANGLES);
-
-        let rightPalmEngsel = applyBoneOffsetMesh(this.skeleton.rightLowerArm, this.meshes.armEngselMesh.solid.mesh, this.offsetMesh.rightPalmArmEngselOffset);
-        drawObject(rightPalmEngsel.buffers, rightPalmEngsel.modelMatrix, [1, 0.78, 0.94], GL.TRIANGLES);
-
-        let leftPalm = applyBoneOffsetMesh(this.skeleton.leftPalmArm, this.meshes.palmBaseMesh.solid.mesh, this.offsetMesh.leftPalmOffset);
-        drawObject(leftPalm.buffers, leftPalm.modelMatrix, [1, 0.78, 0.94], GL.TRIANGLES);
-
-        let rightPalm = applyBoneOffsetMesh(this.skeleton.rightPalmArm, this.meshes.palmBaseMesh.solid.mesh, this.offsetMesh.rightPalmOffset);
-        drawObject(rightPalm.buffers, rightPalm.modelMatrix, [1, 0.78, 0.94], GL.TRIANGLES);
 
         // BOTTOM AND LEG
-        let butt = applyBoneOffsetMesh(this.skeleton.butt, this.meshes.buttMesh.solid.mesh, this.offsetMesh.buttOffset);
-        drawObject(butt.buffers, butt.modelMatrix, [0.157, 0.392, 0.522], GL.TRIANGLES);
-
-        let leftLeg = applyBoneOffsetMesh(this.skeleton.leftLeg, this.meshes.legMesh.solid.mesh, this.offsetMesh.leftLegOffset);
-        drawObject(leftLeg.buffers, leftLeg.modelMatrix, [0.157, 0.392, 0.522], GL.TRIANGLES);
-
-        let rightLeg = applyBoneOffsetMesh(this.skeleton.rightLeg, this.meshes.legMesh.solid.mesh, this.offsetMesh.rightLegOffset);
-        drawObject(rightLeg.buffers, rightLeg.modelMatrix, [0.157, 0.392, 0.522], GL.TRIANGLES);
-
-        let leftLegEngsel = applyBoneOffsetMesh(this.skeleton.leftLeg, this.meshes.legEngselMesh.solid.mesh, this.offsetMesh.leftLegEngselOffset);
-        drawObject(leftLegEngsel.buffers, leftLegEngsel.modelMatrix, [0.157, 0.392, 0.522], GL.TRIANGLES);
-        let rightLegEngsel = applyBoneOffsetMesh(this.skeleton.rightLeg, this.meshes.legEngselMesh.solid.mesh, this.offsetMesh.rightLegEngselOffset);
-        drawObject(rightLegEngsel.buffers, rightLegEngsel.modelMatrix, [0.157, 0.392, 0.522], GL.TRIANGLES);
-
-
+        drawObject(this.meshes.buttMesh.solid.buffers, makeModel(this.skeleton.butt, this.offsetMesh.buttOffset), [0.157, 0.392, 0.522], GL.TRIANGLES)
+        drawObject(this.meshes.legMesh.solid.buffers, makeModel(this.skeleton.leftLeg, this.offsetMesh.leftLegOffset), [0.157, 0.392, 0.522], GL.TRIANGLES)
+        drawObject(this.meshes.legMesh.solid.buffers, makeModel(this.skeleton.rightLeg, this.offsetMesh.rightLegOffset), [0.157, 0.392, 0.522], GL.TRIANGLES)
+        drawObject(this.meshes.legEngselMesh.solid.buffers, makeModel(this.skeleton.leftLeg, this.offsetMesh.leftLegEngselOffset),  [0.157, 0.392, 0.522], GL.TRIANGLES)
+        drawObject(this.meshes.legEngselMesh.solid.buffers, makeModel(this.skeleton.rightLeg, this.offsetMesh.rightLegEngselOffset),  [0.157, 0.392, 0.522], GL.TRIANGLES)
     }
 }

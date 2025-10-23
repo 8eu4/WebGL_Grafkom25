@@ -85,3 +85,40 @@ export function cubicBezier3D(p0, p1, p2, p3) {
         return [x, y, z];
     };
 }
+
+//TAMBAHAN
+
+// B-Spline Curve
+export function generateBSpline(controlPoints, degree = 3, t) {
+    const n = controlPoints.length - 1;
+    const knots = [];
+    for (let i = 0; i <= n + degree + 1; i++) {
+        knots.push(i / (n + degree + 1));
+    }
+
+    function basis(i, p, u) {
+        if (p === 0) {
+            return (u >= knots[i] && u < knots[i + 1]) ? 1 : 0;
+        }
+        const d1 = knots[i + p] - knots[i];
+        const d2 = knots[i + p + 1] - knots[i + 1];
+        const t1 = d1 === 0 ? 0 : ((u - knots[i]) / d1) * basis(i, p - 1, u);
+        const t2 = d2 === 0 ? 0 : ((knots[i + p + 1] - u) / d2) * basis(i + 1, p - 1, u);
+        return t1 + t2;
+    }
+
+    let x = 0, y = 0, z = 0;
+    for (let i = 0; i <= n; i++) {
+        const b = basis(i, degree, t);
+        x += b * controlPoints[i][0];
+        y += b * controlPoints[i][1];
+        z += b * controlPoints[i][2];
+    }
+    return [x, y, z];
+}
+
+export function bSplineCurve(controlPoints, degree = 3) {
+    return function (t) {
+        return generateBSpline(controlPoints, degree, t);
+    };
+}
