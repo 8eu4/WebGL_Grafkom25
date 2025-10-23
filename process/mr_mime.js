@@ -1,0 +1,273 @@
+import { BaseCharacter } from '/process/BaseCharacter.js';
+import { createModelMatrix, createMesh, drawObject } from '../CreateObject.js';
+import { MeshUtilsCurves, rotateAroundAxis } from '../MeshUtilsCurves.js';
+import { MeshUtils } from '../MeshUtils.js';
+import * as Curves from '../curves.js';
+import { makeModel } from "../bone.js"; // Hanya butuh makeModel
+import { GL, attribs } from '../main.js'
+
+export class mr_mime extends BaseCharacter {
+    constructor() {
+        super();
+
+        // --- 1. Definisi Kurva ---
+        const hairCurveL = Curves.cubicBezier3D(
+            [0, 0, 0],    
+            [1.0, 0.4, 0.1], 
+            [1, 3, 0],    
+            [2.6, 0.3, 0]    
+        );
+        const hairCurveR = Curves.cubicBezier3D(
+            [0, 0, 0],    
+            [-1.0, 0.4, 0.1], 
+            [-1, 3, 0],    
+            [-2.6, 0.3, 0]   
+        );
+        const shoeTipCurve = Curves.cubicBezier3D(
+            [0,0,0],
+            [0,0,0.3],
+            [0,1,0.2],
+            [0,0.7,-0.8]);
+
+        const mouthCurve = Curves.cubicBezier3D(
+            [-0.6, 0.1, 0.7],  // p0 (kiri)
+            [-0.3, -0.1, 0.7], // p1 (kontrol kiri, ditarik ke bawah)
+            [ 0.3, -0.1, 0.7], // p2 (kontrol kanan, ditarik ke bawah)
+            [ 0.6, 0.1, 0.7]   // p3 (kanan)
+        );
+
+        // --- 2. `this.meshes` ---
+        this.meshes = {
+            bodyMesh: createMesh(MeshUtils.generateEllipsoid, { params: [1.8, 2, 1.8, 32, 32], deferBuffer: false }),
+            headMesh: createMesh(MeshUtils.generateEllipsoid, { params: [1.2, 1.2, 1.2, 32, 32], deferBuffer: false }),
+            
+            jointMesh: createMesh(MeshUtils.generateEllipsoid, { params: [0.3, 0.3, 0.3, 16, 10], deferBuffer: false }),
+            limbMesh: createMesh(MeshUtils.generateEllipticalCylinder, { params: [0.2, 0.2, 0.2, 0.2, 1.5, 16, 1], deferBuffer: false }),
+            handMesh: createMesh(MeshUtils.generateEllipsoid, { params: [0.55, 0.3, 0.65, 16, 16], deferBuffer: false }),
+
+            fingerMesh: createMesh(MeshUtils.generateEllipsoid, { params: [0.15, 0.2, 0.55, 16, 16], deferBuffer: false }), 
+        
+
+            shoeMesh: createMesh(MeshUtils.generateEllipticParaboloid, { params: [1, 0.5, 3, 1, 16, 16], deferBuffer: false }),
+            shoeTipMesh: createMesh(MeshUtilsCurves.generateVariableTube, { params: [shoeTipCurve, 0, 1, 20, [0.1, 0.15, 0.1], 8], deferBuffer: false }),
+            backShoeMesh: createMesh(MeshUtils.generateEllipticParaboloid, { params: [3, 1, 5, 0.3, 16, 16], deferBuffer: false}),
+
+            //Hair
+            hairMeshL: createMesh(MeshUtilsCurves.generateVariableTube, { params: [hairCurveL, 0, 0.67, 30, [0.4, 0.3, 0.1], 16], deferBuffer: false }),
+            hairMeshR: createMesh(MeshUtilsCurves.generateVariableTube, { params: [hairCurveR, 0, 0.67, 30, [0.4, 0.3, 0.1], 16], deferBuffer: false }),
+            hairBottom1: createMesh(MeshUtils.generateEllipticParaboloid, { params: [0.5, 0.5, 1, 0.5, 16, 16], deferBuffer: false }), 
+            hairBottom2: createMesh(MeshUtils.generateEllipticParaboloid, { params: [1, 0.6, 1, 1, 16, 16], deferBuffer: false }), 
+            hairBottom3: createMesh(MeshUtils.generateEllipticParaboloid, { params: [0.5, 0.26, 0.3, 0.4, 16, 16], deferBuffer: false }), 
+
+            redDotMesh: createMesh(MeshUtils.generateEllipsoid, { params: [0.4, 0.4, 0.1, 16, 16], deferBuffer: false }),
+            cheekDotMesh: createMesh(MeshUtils.generateEllipsoid, { params: [0.3, 0.4, 0.2, 16, 16], deferBuffer: false }),
+            eyeMesh: createMesh(MeshUtils.generateEllipsoid, { params: [0.25, 0.3, 0.2, 16, 16], deferBuffer: false }),
+            eyeBallMesh: createMesh(MeshUtils.generateEllipsoid, { params: [0.1, 0.1, 0.1, 8, 8], deferBuffer: false }),
+
+            mouthMesh: createMesh(MeshUtilsCurves.generateVariableTube, { 
+                params: [
+                    mouthCurve, // Kurva yang baru dibuat
+                    0, 1,       // tMin, tMax
+                    20,         // tSteps (segmen)
+                    0.05,       // radius (tipis)
+                    8           // radialSteps (segi 8)
+                ], 
+                deferBuffer: false 
+            }),
+        };
+
+        // --- 3. `this.skeleton` (Tanpa tulang jari, T-Pose Awal) ---
+         this.skeleton = {
+
+            hip: this.createBone("hip", null, { translate: [0, 0, 0] }),
+            torso: this.createBone("torso", "hip", { translate: [0, 1.5, 0] }),
+            head: this.createBone("head", "torso", { translate: [0, 1.5, 1] }),
+
+            //LEFT HAND
+            shoulderL: this.createBone("shoulderL", "torso", {
+                translate: [-1.7, 1.0, 0], // Kiri = X negatif
+                rotate: [{ axis: 'z', angle: -Math.PI / 2 }]
+            }),
+            upperArmL: this.createBone("upperArmL", "shoulderL", { translate: [0, -1, 0] }),
+            elbowL: this.createBone("elbowL", "upperArmL", { translate: [0, -1.3, 0] }),
+            lowerArmL: this.createBone("lowerArmL", "elbowL", { translate: [0, -0.2, 0] }),
+            handL: this.createBone("handL", "lowerArmL", { translate: [0, -1.5, 0] }),
+
+            //RIGHT HAND
+            shoulderR: this.createBone("shoulderR", "torso", {
+                translate: [1.7, 1.0, 0], 
+                rotate: [{ axis: 'z', angle: Math.PI / 2 }]
+             }),
+            upperArmR: this.createBone("upperArmR", "shoulderR", { translate: [0, -1.0, 0] }),
+            elbowR: this.createBone("elbowR", "upperArmR", { translate: [0, -1.3, 0] }),
+            lowerArmR: this.createBone("lowerArmR", "elbowR", { translate: [0, -0.2, 0] }),
+            handR: this.createBone("handR", "lowerArmR", { translate: [0, -1.5, 0] }),
+
+            //LEFT LEG
+            upperLegL: this.createBone("upperLegL", "hip", { translate: [1, -0.1, 0] }),
+            kneeL: this.createBone("kneeL", "upperLegL", { translate: [0, -1.5, 0] }),
+            lowerLegL: this.createBone("lowerLegL", "kneeL", { translate: [0, -0.2, 0] }),
+            footL: this.createBone("footL", "lowerLegL", { translate: [0, -1.5, 0] }),
+
+            //RIGHT LEG
+            upperLegR: this.createBone("upperLegR", "hip", { translate: [-1, -0.1, 0] }),
+            kneeR: this.createBone("kneeR", "upperLegR", { translate: [0, -1.5, 0] }),
+            lowerLegR: this.createBone("lowerLegR", "kneeR", { translate: [0, -0.2, 0] }),
+            footR: this.createBone("footR", "lowerLegR", { translate: [0, -1.5, 0] }),
+        };
+
+        // --- 4. `this.updateWorld()` ---
+        this.updateWorld();
+
+        // --- 5. `this.offsetMesh` ---
+        
+        const limbOffset = createModelMatrix({ translate: [0, -0.5, 0] });
+        
+
+
+        this.offsetMesh = {
+            bodyOffset: createModelMatrix({ translate: [0, 0, 0], scale: [1, 1, 0.8] }),
+            headOffset: createModelMatrix({ translate: [0, 0.2, -0.6], scale: [1.25, 1.2, 1.2]  }),
+
+            redDotStomach: createModelMatrix({ translate: [0, -0.5, 1.1], scale: [2, 2, 4] , rotate: [{ axis: 'x', angle: 63}] }),
+
+            //Hair
+            hairLOffset: createModelMatrix({ translate: [0.9, 1, -0.85], rotate: [{ axis: 'z', angle: -Math.PI / 8 }] }),
+            hairROffset: createModelMatrix({ translate: [-0.9, 1, -0.85], rotate: [{ axis: 'z', angle: Math.PI / 8 }] }),
+
+            hairBottom1LOffset: createModelMatrix({translate: [-2,0.6,-0.8],rotate: [{axis:'y',angle:Math.PI/2},{axis:'x',angle:-Math.PI/4}],scale: [1,1,1.3]}),
+            hairBottom2LOffset: createModelMatrix({translate: [-2.5,0.7,-0.8],rotate: [{axis:'y',angle:Math.PI/2},{axis:'x',angle:-Math.PI/3 - 0.01}],scale: [0.3,0.8,0.9]}),
+            hairBottom3LOffset: createModelMatrix({translate: [-3.5,1.51,-0.82],rotate: [{axis:'y',angle:Math.PI/2},{axis:'x',angle:-Math.PI/7}],scale: [0.2,0.35,2.3]}),
+
+            hairBottom1ROffset: createModelMatrix({translate: [2,0.6,-0.8],rotate: [{axis:'y',angle:-Math.PI/2},{axis:'x',angle:-Math.PI/4}],scale: [1,1,1.3]}),
+            hairBottom2ROffset: createModelMatrix({translate: [2.5,0.7,-0.8],rotate: [{axis:'y',angle:-Math.PI/2},{axis:'x',angle:-Math.PI/3 - 0.01}],scale: [0.3,0.8,0.9]}),
+            hairBottom3ROffset: createModelMatrix({translate: [3.5,1.51,-0.82],rotate: [{axis:'y',angle:-Math.PI/2},{axis:'x',angle:-Math.PI/7}],scale: [0.2,0.35,2.3]}),
+
+            //Cheek
+            cheekLOffset: createModelMatrix({ translate: [0.9, -0.1, 0.5], rotate: [{ axis: 'y', angle: -100 }] }),
+            cheekROffset: createModelMatrix({ translate: [-0.9, -0.1, 0.5 ], rotate: [{ axis: 'y', angle: 100 }] }),
+
+            eyeROffset: createModelMatrix({ translate: [0.5, 0.6, 0.6], rotate: [{ axis: 'y', angle: Math.PI / 12 }] }),
+            eyeLOffset: createModelMatrix({ translate: [-0.5, 0.6, 0.6], rotate: [{ axis: 'y', angle: -Math.PI / 12 }] }),
+            eyeBallLOffset: createModelMatrix({ translate: [-0.5, 0.6, 0.75], rotate: [{ axis: 'y', angle: -Math.PI / 12 }] }),
+            eyeBallROffset: createModelMatrix({ translate: [0.5, 0.6, 0.75], rotate: [{ axis: 'y', angle: Math.PI / 12 }] }),
+            mouthOffset: createModelMatrix({translate: [0, -0.2, 0.05], scale: [1, 0.7, 1]}),
+
+            shoulderLOffset: createModelMatrix({scale: [3, 3, 3]}),
+            shoulderROffset: createModelMatrix({scale: [3, 3, 3]}),
+
+            legShoulderLOffset : createModelMatrix({scale: [2, 2, 2]}),
+            legShoulderROffset : createModelMatrix({scale: [2, 2, 2]}),
+
+            elbowLOffset: createModelMatrix({scale: [0.8, 0.8, 0.8]}),
+            elbowROffset: createModelMatrix({scale: [0.8, 0.8, 0.8]}),
+
+            kneeLOffset: createModelMatrix({}),
+            kneeROffset: createModelMatrix({}),
+
+            upperArmLOffset: limbOffset,
+            lowerArmLOffset: limbOffset,
+            upperArmROffset: limbOffset,
+            lowerArmROffset: limbOffset,
+            
+            handLOffset: createModelMatrix({ translate: [0, 0, 0], rotate: [{ axis: 'x', angle: Math.PI / 2 }] }),
+            handROffset: createModelMatrix({ translate: [0, 0, 0], rotate: [{ axis: 'x', angle: Math.PI / 2 }] }),
+            fingerLOffset: createModelMatrix({ translate: [-0.4, 0.2, 0], rotate: [{ axis: 'y', angle: Math.PI / 2 }] }),
+            fingerROffset: createModelMatrix({ translate: [0.4, 0.2, 0], rotate: [{ axis: 'y', angle: Math.PI / 2 }] }),
+
+
+            upperLegLOffset: limbOffset,
+            lowerLegLOffset: limbOffset,
+            upperLegROffset: limbOffset,
+            lowerLegROffset: limbOffset,
+
+            shoeLOffset: createModelMatrix({ translate: [0, 0.1, 1.8], 
+                rotate: [{ axis: 'x', angle: -Math.PI  }], scale: [0.5, 1, 1.7] }),
+            shoeROffset: createModelMatrix({ translate: [0, 0.1, 1.8], 
+                rotate: [{ axis: 'x', angle: -Math.PI }], scale: [0.5, 1, 1.7] }),
+            shoeTipLOffset: createModelMatrix({ translate: [0, 0.1, 1.6] }),
+            shoeTipROffset: createModelMatrix({ translate: [0, 0.1, 1.6] }),
+            backShoeLOffset: createModelMatrix({ translate: [0, 0.1, -0.5], scale: [0.4, 1, 2] }),
+            backShoeROffset: createModelMatrix({ translate: [0, 0.1, -0.5], scale: [0.4, 1, 2] })
+        };
+        // =================================================================
+    }
+
+    // --- animate() (Hanya update world matrix) ---
+    animate(time) {
+        this.updateWorld();
+    }
+
+    drawObject() {
+        const C_PINK = [1.0, 0.71, 0.76];
+        const C_CREAM = [1.0, 0.89, 0.83];
+        const C_BLUE = [0.2, 0.53, 0.8];
+        const C_WHITE = [1.0, 1.0, 1.0];
+        const C_BLACK = [0.1, 0.1, 0.1];
+
+        //BODY
+        drawObject(this.meshes.bodyMesh.solid.buffers, makeModel(this.skeleton.torso, this.offsetMesh.bodyOffset), C_WHITE, GL.TRIANGLES);
+        drawObject(this.meshes.redDotMesh.solid.buffers, makeModel(this.skeleton.torso, this.offsetMesh.redDotStomach), C_PINK, GL.TRIANGLES);
+
+        //KEPALA
+        drawObject(this.meshes.headMesh.solid.buffers, makeModel(this.skeleton.head, this.offsetMesh.headOffset), C_CREAM, GL.TRIANGLES);
+
+        //RAMBUT
+        drawObject(this.meshes.hairMeshL.solid.buffers, makeModel(this.skeleton.head, this.offsetMesh.hairLOffset), C_BLUE, GL.TRIANGLES);
+        drawObject(this.meshes.hairMeshR.solid.buffers, makeModel(this.skeleton.head, this.offsetMesh.hairROffset), C_BLUE, GL.TRIANGLES);
+       
+        drawObject(this.meshes.hairBottom1.solid.buffers, makeModel(this.skeleton.head, this.offsetMesh.hairBottom1LOffset), C_BLUE, GL.TRIANGLES);
+        drawObject(this.meshes.hairBottom2.solid.buffers, makeModel(this.skeleton.head, this.offsetMesh.hairBottom2LOffset), C_BLUE, GL.TRIANGLES);
+        drawObject(this.meshes.hairBottom3.solid.buffers, makeModel(this.skeleton.head, this.offsetMesh.hairBottom3LOffset), C_BLUE, GL.TRIANGLES);
+        
+        drawObject(this.meshes.hairBottom1.solid.buffers, makeModel(this.skeleton.head, this.offsetMesh.hairBottom1ROffset), C_BLUE, GL.TRIANGLES);
+        drawObject(this.meshes.hairBottom2.solid.buffers, makeModel(this.skeleton.head, this.offsetMesh.hairBottom2ROffset), C_BLUE, GL.TRIANGLES);
+        drawObject(this.meshes.hairBottom3.solid.buffers, makeModel(this.skeleton.head, this.offsetMesh.hairBottom3ROffset), C_BLUE, GL.TRIANGLES);
+
+        //MUKA
+        drawObject(this.meshes.cheekDotMesh.solid.buffers, makeModel(this.skeleton.head, this.offsetMesh.cheekLOffset), C_PINK, GL.TRIANGLES);
+        drawObject(this.meshes.cheekDotMesh.solid.buffers, makeModel(this.skeleton.head, this.offsetMesh.cheekROffset), C_PINK, GL.TRIANGLES);
+        drawObject(this.meshes.eyeMesh.solid.buffers, makeModel(this.skeleton.head, this.offsetMesh.eyeLOffset), C_WHITE, GL.TRIANGLES);
+        drawObject(this.meshes.eyeMesh.solid.buffers, makeModel(this.skeleton.head, this.offsetMesh.eyeROffset), C_WHITE, GL.TRIANGLES);
+        drawObject(this.meshes.eyeBallMesh.solid.buffers, makeModel(this.skeleton.head, this.offsetMesh.eyeBallLOffset), C_BLACK, GL.TRIANGLES);
+        drawObject(this.meshes.eyeBallMesh.solid.buffers, makeModel(this.skeleton.head, this.offsetMesh.eyeBallROffset), C_BLACK, GL.TRIANGLES);
+        drawObject(this.meshes.mouthMesh.solid.buffers, makeModel(this.skeleton.head, this.offsetMesh.mouthOffset), C_BLACK, GL.TRIANGLES);
+
+
+        drawObject(this.meshes.jointMesh.solid.buffers, makeModel(this.skeleton.shoulderL, this.offsetMesh.shoulderLOffset), C_PINK, GL.TRIANGLES);
+        drawObject(this.meshes.jointMesh.solid.buffers, makeModel(this.skeleton.shoulderR, this.offsetMesh.shoulderROffset), C_PINK, GL.TRIANGLES);
+        drawObject(this.meshes.jointMesh.solid.buffers, makeModel(this.skeleton.elbowL, this.offsetMesh.elbowLOffset), C_CREAM, GL.TRIANGLES);
+        drawObject(this.meshes.jointMesh.solid.buffers, makeModel(this.skeleton.elbowR, this.offsetMesh.elbowROffset), C_CREAM, GL.TRIANGLES);
+        drawObject(this.meshes.jointMesh.solid.buffers, makeModel(this.skeleton.kneeL, this.offsetMesh.kneeLOffset), C_WHITE, GL.TRIANGLES);
+        drawObject(this.meshes.jointMesh.solid.buffers, makeModel(this.skeleton.kneeR, this.offsetMesh.kneeROffset), C_WHITE, GL.TRIANGLES);
+        drawObject(this.meshes.jointMesh.solid.buffers, makeModel(this.skeleton.upperLegL, this.offsetMesh.legShoulderLOffset), C_PINK, GL.TRIANGLES);
+        drawObject(this.meshes.jointMesh.solid.buffers, makeModel(this.skeleton.upperLegR, this.offsetMesh.legShoulderROffset), C_PINK, GL.TRIANGLES);
+
+        drawObject(this.meshes.limbMesh.solid.buffers, makeModel(this.skeleton.upperArmL, this.offsetMesh.upperArmLOffset), C_CREAM, GL.TRIANGLES);
+        drawObject(this.meshes.limbMesh.solid.buffers, makeModel(this.skeleton.lowerArmL, this.offsetMesh.lowerArmLOffset), C_CREAM, GL.TRIANGLES);
+
+        drawObject(this.meshes.fingerMesh.solid.buffers, makeModel(this.skeleton.handL, this.offsetMesh.fingerLOffset), C_WHITE, GL.TRIANGLES);
+        drawObject(this.meshes.fingerMesh.solid.buffers, makeModel(this.skeleton.handR, this.offsetMesh.fingerROffset), C_WHITE, GL.TRIANGLES);
+
+
+        drawObject(this.meshes.limbMesh.solid.buffers, makeModel(this.skeleton.upperArmR, this.offsetMesh.upperArmROffset), C_CREAM, GL.TRIANGLES);
+        drawObject(this.meshes.limbMesh.solid.buffers, makeModel(this.skeleton.lowerArmR, this.offsetMesh.lowerArmROffset), C_CREAM, GL.TRIANGLES);
+        drawObject(this.meshes.limbMesh.solid.buffers, makeModel(this.skeleton.upperLegL, this.offsetMesh.upperLegLOffset), C_CREAM, GL.TRIANGLES);
+        drawObject(this.meshes.limbMesh.solid.buffers, makeModel(this.skeleton.lowerLegL, this.offsetMesh.lowerLegLOffset), C_CREAM, GL.TRIANGLES);
+        drawObject(this.meshes.limbMesh.solid.buffers, makeModel(this.skeleton.upperLegR, this.offsetMesh.upperLegROffset), C_CREAM, GL.TRIANGLES);
+        drawObject(this.meshes.limbMesh.solid.buffers, makeModel(this.skeleton.lowerLegR, this.offsetMesh.lowerLegROffset), C_CREAM, GL.TRIANGLES);
+        drawObject(this.meshes.handMesh.solid.buffers, makeModel(this.skeleton.handL, this.offsetMesh.handLOffset), C_WHITE, GL.TRIANGLES);
+        drawObject(this.meshes.handMesh.solid.buffers, makeModel(this.skeleton.handR, this.offsetMesh.handROffset), C_WHITE, GL.TRIANGLES);
+
+      
+    
+
+        // --- SEPATU (BIRU) ---
+        drawObject(this.meshes.shoeMesh.solid.buffers, makeModel(this.skeleton.footL, this.offsetMesh.shoeLOffset), C_BLUE, GL.TRIANGLES);
+        drawObject(this.meshes.shoeMesh.solid.buffers, makeModel(this.skeleton.footR, this.offsetMesh.shoeROffset), C_BLUE, GL.TRIANGLES);
+        drawObject(this.meshes.shoeTipMesh.solid.buffers, makeModel(this.skeleton.footL, this.offsetMesh.shoeTipLOffset), C_BLUE, GL.TRIANGLES);
+        drawObject(this.meshes.shoeTipMesh.solid.buffers, makeModel(this.skeleton.footR, this.offsetMesh.shoeTipROffset), C_BLUE, GL.TRIANGLES);
+        drawObject(this.meshes.backShoeMesh.solid.buffers, makeModel(this.skeleton.footL, this.offsetMesh.backShoeLOffset), C_BLUE, GL.TRIANGLES);
+        drawObject(this.meshes.backShoeMesh.solid.buffers, makeModel(this.skeleton.footR, this.offsetMesh.backShoeROffset), C_BLUE, GL.TRIANGLES);
+    }
+}

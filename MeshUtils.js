@@ -295,6 +295,63 @@ export const MeshUtils = (function () {
         };
     }
 
+    function generateEllipticalCone(radiusX = 1, radiusZ = 1, height = 2, slices = 32, singleNappe = true) {
+        slices = Math.max(3, Math.floor(slices));
+        const positions = [];
+        const indices = [];
+
+        // --- 1. Buat Vertices ---
+
+        // Base circle (di y=0)
+        positions.push(0, 0, 0); // center index 0
+        for (let i = 0; i <= slices; i++) {
+            const theta = (i / slices) * 2 * Math.PI;
+            // Gunakan radiusX dan radiusZ untuk membuat elips
+            positions.push(radiusX * Math.cos(theta), 0, radiusZ * Math.sin(theta));
+        }
+
+        // Tip (ujung atas)
+        const tipIndex = positions.length / 3; // Index dari vertex ujung atas
+        positions.push(0, height, 0); // tip at y=height
+
+        let negTipIndex = -1; // Index untuk ujung bawah (jika ada)
+
+        if (!singleNappe) {
+            // Buat tip kedua (ujung bawah) untuk bentuk jam pasir
+            negTipIndex = positions.length / 3;
+            positions.push(0, -height, 0); // negative tip at y=-height
+        }
+
+        // --- 2. Buat Indices ---
+
+        // Base indices (Tutup dasar)
+        // (Mengikuti urutan Clockwise/CW Anda: 0, i, i+1)
+        for (let i = 1; i <= slices; i++) {
+            indices.push(0, i, i + 1);
+        }
+
+        // Side indices (Sisi kerucut atas)
+        // (Mengikuti urutan CW Anda: i, tip, i+1)
+        for (let i = 1; i <= slices; i++) {
+            indices.push(i, tipIndex, i + 1);
+        }
+
+        // Side indices (Sisi kerucut bawah, jika ada)
+        if (!singleNappe) {
+            // (Menggunakan urutan CW: i, i+1, negTip)
+            for (let i = 1; i <= slices; i++) {
+                indices.push(i, i + 1, negTipIndex);
+            }
+        }
+
+        return {
+            positions: new Float32Array(positions),
+            indices: (positions.length / 3) > 65535 ? new Uint32Array(indices) : new Uint16Array(indices)
+            // Catatan: 'normals' dan 'uvs' sengaja dihilangkan,
+            // sama seperti fungsi generateCone Anda.
+        };
+    }
+
     function generateCone(radius = 1, height = 2, slices = 32) {
         const positions = [];
         const indices = [];
@@ -340,9 +397,9 @@ export const MeshUtils = (function () {
                 positions.push(x, y, z);
 
                 // --- Perhitungan Normal ---
-                let nx = -2 * x / (a * a);
-                let ny = -2 * y / (b * b);
-                let nz = 1 / c;
+                let nx = 2 * x / (a * a);
+                let ny = 2 * y / (b * b);
+                let nz = -1 / c;
 
                 // Normalisasi
                 const length = Math.sqrt(nx * nx + ny * ny + nz * nz);
@@ -363,7 +420,10 @@ export const MeshUtils = (function () {
                 const i1 = i0 + 1;
                 const i2 = i0 + rowVerts;
                 const i3 = i2 + 1;
-                indices.push(i0, i2, i1, i1, i2, i3);
+
+                indices.push(i0, i1, i2);
+                indices.push(i1, i3, i2);
+
             }
         }
 
@@ -696,6 +756,7 @@ export const MeshUtils = (function () {
         generateBox,
         generateEllipticalCylinder,
         generateTorus,
+        generateEllipticalCone,
         generateCone,
         generateEllipticParaboloid,
         generateHyperbolicParaboloid,
