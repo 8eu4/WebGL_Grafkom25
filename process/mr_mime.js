@@ -14,6 +14,7 @@ const mat4 = window.mat4;
 export class mr_mime extends BaseCharacter{x
   constructor() {
   super();
+  this.xOffset = 0;
 
   // --- 1. Definisi Kurva ---
 const hairCurveL = Curves.cubicBezier3D(
@@ -244,7 +245,7 @@ this.skeleton = {
         const maxBoxScale = 3.0;
         const boxBaseY = this.initialHipY + 1.5; // Ketinggian relatif thd Y awal hip
         const boxBaseZ = walkDistance + 2.5; // Posisi Z di depan titik henti jalan
-        const boxAbsolutePosition = [0, boxBaseY, boxBaseZ];
+        const boxAbsolutePosition = [20, boxBaseY, boxBaseZ];
 
         // --- Inisialisasi Nilai Transformasi ---
         let eyeScaleY = 1.0;
@@ -258,7 +259,7 @@ this.skeleton = {
         let arbitraryShoulderLRotation = null;
         let arbitraryShoulderRRotation = null;
         const originalHipY = this.initialHipY;
-        let currentHipPosition = [0, originalHipY, 0];
+        let currentHipPosition = [this.xOffset, originalHipY, 0];
         let currentBoxScale = 0;
         this.isBoxVisible = false;
 
@@ -282,7 +283,7 @@ this.skeleton = {
         if (loopedTime < initialDelay) { // Diam Awal
             shoulderLAngleZ_target = defaultShoulderAngleL_Down; shoulderRAngleZ_target = defaultShoulderAngleR_Down;
             currentElbowLAngleZ = 0; currentElbowRAngleZ = 0; currentHandLAngleY = 0; currentHandRAngleY = 0;
-            currentHipPosition = [0, originalHipY, 0];
+            currentHipPosition = [this.xOffset, originalHipY, 0];
             arbitraryShoulderLRotation = null; arbitraryShoulderRRotation = null;
             currentBoxScale = 0; this.isBoxVisible = false;
 
@@ -291,7 +292,7 @@ this.skeleton = {
             shoulderLAngleZ_target = defaultShoulderAngleL_Down + smoothProgress * (shoulderRaiseTargetAngleL - defaultShoulderAngleL_Down);
             shoulderRAngleZ_target = defaultShoulderAngleR_Down + smoothProgress * (shoulderRaiseTargetAngleR - defaultShoulderAngleR_Down);
             currentHandLAngleY = smoothProgress * -maxHandRotateY_Action; currentHandRAngleY = smoothProgress * maxHandRotateY_Action;
-            currentHipPosition = [0, originalHipY, 0]; currentElbowLAngleZ = 0; currentElbowRAngleZ = 0;
+            currentHipPosition = [this.xOffset, originalHipY, 0]; currentElbowLAngleZ = 0; currentElbowRAngleZ = 0;
             arbitraryShoulderLRotation = null; arbitraryShoulderRRotation = null;
             currentBoxScale = 0; this.isBoxVisible = false;
 
@@ -300,7 +301,7 @@ this.skeleton = {
             shoulderLAngleZ_target = shoulderRaiseTargetAngleL + smoothProgress * (defaultShoulderAngleL_Down - shoulderRaiseTargetAngleL);
             shoulderRAngleZ_target = shoulderRaiseTargetAngleR + smoothProgress * (defaultShoulderAngleR_Down - shoulderRaiseTargetAngleR);
             currentHandLAngleY = (1.0 - smoothProgress) * -maxHandRotateY_Action; currentHandRAngleY = (1.0 - smoothProgress) * maxHandRotateY_Action;
-            currentHipPosition = [0, originalHipY, 0]; currentElbowLAngleZ = 0; currentElbowRAngleZ = 0;
+            currentHipPosition = [this.xOffset, originalHipY, 0]; currentElbowLAngleZ = 0; currentElbowRAngleZ = 0;
             arbitraryShoulderLRotation = null; arbitraryShoulderRRotation = null;
             currentBoxScale = 0; this.isBoxVisible = false;
 
@@ -309,7 +310,7 @@ this.skeleton = {
             shoulderLAngleZ_target = defaultShoulderAngleL_Down + smoothProgress * (shoulderRaiseTargetAngleL - defaultShoulderAngleL_Down);
             shoulderRAngleZ_target = defaultShoulderAngleR_Down + smoothProgress * (shoulderRaiseTargetAngleR - defaultShoulderAngleR_Down);
             currentHandLAngleY = smoothProgress * -maxHandRotateY_Action; currentHandRAngleY = smoothProgress * maxHandRotateY_Action;
-            currentHipPosition = [0, originalHipY, 0]; currentElbowLAngleZ = 0; currentElbowRAngleZ = 0;
+            currentHipPosition = [this.xOffset, originalHipY, 0]; currentElbowLAngleZ = 0; currentElbowRAngleZ = 0;
             arbitraryShoulderLRotation = null; arbitraryShoulderRRotation = null;
             currentBoxScale = 0; this.isBoxVisible = false;
 
@@ -318,13 +319,13 @@ this.skeleton = {
             shoulderLAngleZ_target = shoulderRaiseTargetAngleL + smoothProgress * (defaultShoulderAngleL_Down - shoulderRaiseTargetAngleL);
             shoulderRAngleZ_target = shoulderRaiseTargetAngleR + smoothProgress * (defaultShoulderAngleR_Down - shoulderRaiseTargetAngleR);
             currentHandLAngleY = (1.0 - smoothProgress) * -maxHandRotateY_Action; currentHandRAngleY = (1.0 - smoothProgress) * maxHandRotateY_Action;
-            currentHipPosition = [0, originalHipY, 0]; currentElbowLAngleZ = 0; currentElbowRAngleZ = 0;
+            currentHipPosition = [this.xOffset, originalHipY, 0]; currentElbowLAngleZ = 0; currentElbowRAngleZ = 0;
             arbitraryShoulderLRotation = null; arbitraryShoulderRRotation = null;
             currentBoxScale = 0; this.isBoxVisible = false;
 
         } else if (loopedTime < walkStartTimeSeq) { /* Jeda Sebelum Jalan */
             shoulderLAngleZ_target = defaultShoulderAngleL_Down; shoulderRAngleZ_target = defaultShoulderAngleR_Down;
-            currentHandLAngleY = 0; currentHandRAngleY = 0; currentHipPosition = [0, originalHipY, 0];
+            currentHandLAngleY = 0; currentHandRAngleY = 0; currentHipPosition = [this.xOffset, originalHipY, 0];
             currentElbowLAngleZ = 0; currentElbowRAngleZ = 0;
             arbitraryShoulderLRotation = null; arbitraryShoulderRRotation = null;
             currentBoxScale = 0; this.isBoxVisible = false;
@@ -336,7 +337,7 @@ this.skeleton = {
             currentBoxScale = 0; this.isBoxVisible = false;
 
             const walkPhaseT = (loopedTime - walkStartTimeSeq) / walkDuration; const smoothWalkProgress = Math.sin(walkPhaseT * Math.PI / 2);
-            currentHipPosition = [0, originalHipY, smoothWalkProgress * walkDistance];
+            currentHipPosition = [this.xOffset, originalHipY, smoothWalkProgress * walkDistance];
             const timeSinceWalkStart = loopedTime - walkStartTimeSeq; const t_walkCycle = (timeSinceWalkStart % walkCycleDuration) / walkCycleDuration;
             const swing = Math.sin(t_walkCycle * 2 * Math.PI);
             thighAngleL = swing * maxLegSwingAngle; thighAngleR = -swing * maxLegSwingAngle;
@@ -344,7 +345,7 @@ this.skeleton = {
             footAngleL = 0; footAngleR = 0;
 
         } else if (loopedTime < windmillPrepEndTime) { // Persiapan Kincir Angin
-           currentHipPosition = [0, originalHipY, walkDistance];
+           currentHipPosition = [this.xOffset, originalHipY, walkDistance];
            thighAngleL = 0; thighAngleR = 0; kneeAngleL = 0; kneeAngleR = 0; footAngleL = 0; footAngleR = 0;
            arbitraryShoulderLRotation = null; arbitraryShoulderRRotation = null;
             currentBoxScale = 0; this.isBoxVisible = false;
@@ -355,7 +356,7 @@ this.skeleton = {
            currentElbowLAngleZ = 0; currentElbowRAngleZ = 0; currentHandLAngleY = 0; currentHandRAngleY = 0;
 
         } else if (loopedTime < windmillEndTime) { // Fase Kincir Angin (Dibatasi)
-           currentHipPosition = [0, originalHipY, walkDistance];
+           currentHipPosition = [this.xOffset, originalHipY, walkDistance];
            thighAngleL = 0; thighAngleR = 0; kneeAngleL = 0; kneeAngleR = 0; footAngleL = 0; footAngleR = 0;
 
            const timeInWindmill = loopedTime - windmillStartTime; const currentWindmillAngle = timeInWindmill * windmillSpeed;
@@ -373,7 +374,7 @@ this.skeleton = {
             currentBoxScale = boxSmoothProgress * maxBoxScale;
 
         } else if (loopedTime < windmillLowerEndTime) { // Fase Transisi Turun Tangan
-           currentHipPosition = [0, originalHipY, walkDistance];
+           currentHipPosition = [this.xOffset, originalHipY, walkDistance];
            thighAngleL = 0; thighAngleR = 0; kneeAngleL = 0; kneeAngleR = 0; footAngleL = 0; footAngleR = 0;
 
            const phaseT = (loopedTime - windmillLowerStartTime) / windmillLowerDuration; const smoothProgress = 0.5 - 0.5 * Math.cos(phaseT * Math.PI);
@@ -399,7 +400,7 @@ this.skeleton = {
                 currentBoxScale = 0; this.isBoxVisible = false; // Kotak hilang
 
                 const phaseT = (loopedTime - walkBackwardStartTime) / walkBackwardDuration; const smoothProgress = 0.5 - 0.5 * Math.cos(phaseT * Math.PI);
-                currentHipPosition = [0, originalHipY, walkDistance * (1.0 - smoothProgress)];
+                currentHipPosition = [this.xOffset, originalHipY, walkDistance * (1.0 - smoothProgress)];
 
                 const timeSinceWalkBackStart = loopedTime - walkBackwardStartTime; const t_walkCycle = (timeSinceWalkBackStart % walkCycleDuration) / walkCycleDuration;
                 const swing = -Math.sin(t_walkCycle * 2 * Math.PI);
@@ -409,7 +410,7 @@ this.skeleton = {
 
         } else { // Fase Diam (Akhir siklus) -> Ini seharusnya tidak tercapai karena modulo
            // Kode ini sebagai fallback jika modulo gagal
-           currentHipPosition = [0, originalHipY, 0];
+           currentHipPosition = [this.xOffset, originalHipY, 0];
            thighAngleL = 0; thighAngleR = 0; kneeAngleL = 0; kneeAngleR = 0; footAngleL = 0; footAngleR = 0;
            arbitraryShoulderLRotation = null; arbitraryShoulderRRotation = null;
            shoulderLAngleZ_target = defaultShoulderAngleL_Down; shoulderRAngleZ_target = defaultShoulderAngleR_Down;
