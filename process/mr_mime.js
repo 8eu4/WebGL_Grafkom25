@@ -23,7 +23,18 @@ export class mr_mime extends BaseCharacter {
             [-1, 3, 0],    
             [-2.6, 0.3, 0]   
         );
-        const shoeTipCurve = Curves.cubicBezier3D([0,0,0],[0,0.5,0.3],[0,0.8,0.2],[0,1.0,0]);
+        const shoeTipCurve = Curves.cubicBezier3D(
+            [0,0,0],
+            [0,0,0.3],
+            [0,1,0.2],
+            [0,0.7,-0.8]);
+
+        const mouthCurve = Curves.cubicBezier3D(
+            [-0.6, 0.1, 0.7],  // p0 (kiri)
+            [-0.3, -0.1, 0.7], // p1 (kontrol kiri, ditarik ke bawah)
+            [ 0.3, -0.1, 0.7], // p2 (kontrol kanan, ditarik ke bawah)
+            [ 0.6, 0.1, 0.7]   // p3 (kanan)
+        );
 
         // --- 2. `this.meshes` ---
         this.meshes = {
@@ -32,29 +43,42 @@ export class mr_mime extends BaseCharacter {
             
             jointMesh: createMesh(MeshUtils.generateEllipsoid, { params: [0.3, 0.3, 0.3, 16, 10], deferBuffer: false }),
             limbMesh: createMesh(MeshUtils.generateEllipticalCylinder, { params: [0.2, 0.2, 0.2, 0.2, 1.5, 16, 1], deferBuffer: false }),
-            handMesh: createMesh(MeshUtils.generateEllipsoid, { params: [0.45, 0.3, 0.45, 16, 16], deferBuffer: false }),
+            handMesh: createMesh(MeshUtils.generateEllipsoid, { params: [0.55, 0.3, 0.65, 16, 16], deferBuffer: false }),
 
-            fingerMesh: createMesh(MeshUtils.generateEllipticalCylinder, { params: [0.1, 0.1, 0.1, 0.1, 0.5], deferBuffer: false }), // Tinggi 0.5
-            fingerTipMesh: createMesh(MeshUtils.generateEllipsoid, { params: [0.12, 0.12, 0.12, 8, 8], deferBuffer: false }),
+            fingerMesh: createMesh(MeshUtils.generateEllipsoid, { params: [0.15, 0.2, 0.55, 16, 16], deferBuffer: false }), 
+        
 
-            shoeMesh: createMesh(MeshUtils.generateEllipticParaboloid, { params: [0.5, 0.8, 1, 0.4, 16, 16], deferBuffer: false }),
-            shoeTipMesh: createMesh(MeshUtilsCurves.generateVariableTube, { params: [shoeTipCurve, 0, 1, 20, [0.2, 0.15, 0.1], 8], deferBuffer: false }),
+            shoeMesh: createMesh(MeshUtils.generateEllipticParaboloid, { params: [1, 0.5, 3, 1, 16, 16], deferBuffer: false }),
+            shoeTipMesh: createMesh(MeshUtilsCurves.generateVariableTube, { params: [shoeTipCurve, 0, 1, 20, [0.1, 0.15, 0.1], 8], deferBuffer: false }),
+            backShoeMesh: createMesh(MeshUtils.generateEllipticParaboloid, { params: [3, 1, 5, 0.3, 16, 16], deferBuffer: false}),
 
             //Hair
             hairMeshL: createMesh(MeshUtilsCurves.generateVariableTube, { params: [hairCurveL, 0, 0.67, 30, [0.4, 0.3, 0.1], 16], deferBuffer: false }),
             hairMeshR: createMesh(MeshUtilsCurves.generateVariableTube, { params: [hairCurveR, 0, 0.67, 30, [0.4, 0.3, 0.1], 16], deferBuffer: false }),
-            hairBottom1: createMesh(MeshUtils.generateEllipticParaboloid, { params: [0.5, 0.5, 1, 0.5, 16, 16], deferBuffer: false }), // Besar
-            hairBottom2: createMesh(MeshUtils.generateEllipticParaboloid, { params: [1, 0.6, 1, 1, 16, 16], deferBuffer: false }), // Sedang
-            hairBottom3: createMesh(MeshUtils.generateEllipticParaboloid, { params: [0.5, 0.26, 0.3, 0.4, 16, 16], deferBuffer: false }), // Kecil
+            hairBottom1: createMesh(MeshUtils.generateEllipticParaboloid, { params: [0.5, 0.5, 1, 0.5, 16, 16], deferBuffer: false }), 
+            hairBottom2: createMesh(MeshUtils.generateEllipticParaboloid, { params: [1, 0.6, 1, 1, 16, 16], deferBuffer: false }), 
+            hairBottom3: createMesh(MeshUtils.generateEllipticParaboloid, { params: [0.5, 0.26, 0.3, 0.4, 16, 16], deferBuffer: false }), 
 
             redDotMesh: createMesh(MeshUtils.generateEllipsoid, { params: [0.4, 0.4, 0.1, 16, 16], deferBuffer: false }),
             cheekDotMesh: createMesh(MeshUtils.generateEllipsoid, { params: [0.3, 0.4, 0.2, 16, 16], deferBuffer: false }),
             eyeMesh: createMesh(MeshUtils.generateEllipsoid, { params: [0.25, 0.3, 0.2, 16, 16], deferBuffer: false }),
             eyeBallMesh: createMesh(MeshUtils.generateEllipsoid, { params: [0.1, 0.1, 0.1, 8, 8], deferBuffer: false }),
+
+            mouthMesh: createMesh(MeshUtilsCurves.generateVariableTube, { 
+                params: [
+                    mouthCurve, // Kurva yang baru dibuat
+                    0, 1,       // tMin, tMax
+                    20,         // tSteps (segmen)
+                    0.05,       // radius (tipis)
+                    8           // radialSteps (segi 8)
+                ], 
+                deferBuffer: false 
+            }),
         };
 
         // --- 3. `this.skeleton` (Tanpa tulang jari, T-Pose Awal) ---
          this.skeleton = {
+
             hip: this.createBone("hip", null, { translate: [0, 0, 0] }),
             torso: this.createBone("torso", "hip", { translate: [0, 1.5, 0] }),
             head: this.createBone("head", "torso", { translate: [0, 1.5, 1] }),
@@ -80,13 +104,13 @@ export class mr_mime extends BaseCharacter {
             handR: this.createBone("handR", "lowerArmR", { translate: [0, -1.5, 0] }),
 
             //LEFT LEG
-            upperLegL: this.createBone("upperLegL", "hip", { translate: [1, -0.2, 0] }),
+            upperLegL: this.createBone("upperLegL", "hip", { translate: [1, -0.1, 0] }),
             kneeL: this.createBone("kneeL", "upperLegL", { translate: [0, -1.5, 0] }),
             lowerLegL: this.createBone("lowerLegL", "kneeL", { translate: [0, -0.2, 0] }),
             footL: this.createBone("footL", "lowerLegL", { translate: [0, -1.5, 0] }),
 
             //RIGHT LEG
-            upperLegR: this.createBone("upperLegR", "hip", { translate: [-1, -0.2, 0] }),
+            upperLegR: this.createBone("upperLegR", "hip", { translate: [-1, -0.1, 0] }),
             kneeR: this.createBone("kneeR", "upperLegR", { translate: [0, -1.5, 0] }),
             lowerLegR: this.createBone("lowerLegR", "kneeR", { translate: [0, -0.2, 0] }),
             footR: this.createBone("footR", "lowerLegR", { translate: [0, -1.5, 0] }),
@@ -125,6 +149,10 @@ export class mr_mime extends BaseCharacter {
 
             eyeROffset: createModelMatrix({ translate: [0.5, 0.6, 0.6], rotate: [{ axis: 'y', angle: Math.PI / 12 }] }),
             eyeLOffset: createModelMatrix({ translate: [-0.5, 0.6, 0.6], rotate: [{ axis: 'y', angle: -Math.PI / 12 }] }),
+            eyeBallLOffset: createModelMatrix({ translate: [-0.5, 0.6, 0.75], rotate: [{ axis: 'y', angle: -Math.PI / 12 }] }),
+            eyeBallROffset: createModelMatrix({ translate: [0.5, 0.6, 0.75], rotate: [{ axis: 'y', angle: Math.PI / 12 }] }),
+            mouthOffset: createModelMatrix({translate: [0, -0.2, 0.05], scale: [1, 0.7, 1]}),
+
             shoulderLOffset: createModelMatrix({scale: [3, 3, 3]}),
             shoulderROffset: createModelMatrix({scale: [3, 3, 3]}),
 
@@ -133,6 +161,7 @@ export class mr_mime extends BaseCharacter {
 
             elbowLOffset: createModelMatrix({scale: [0.8, 0.8, 0.8]}),
             elbowROffset: createModelMatrix({scale: [0.8, 0.8, 0.8]}),
+
             kneeLOffset: createModelMatrix({}),
             kneeROffset: createModelMatrix({}),
 
@@ -143,6 +172,8 @@ export class mr_mime extends BaseCharacter {
             
             handLOffset: createModelMatrix({ translate: [0, 0, 0], rotate: [{ axis: 'x', angle: Math.PI / 2 }] }),
             handROffset: createModelMatrix({ translate: [0, 0, 0], rotate: [{ axis: 'x', angle: Math.PI / 2 }] }),
+            fingerLOffset: createModelMatrix({ translate: [-0.4, 0.2, 0], rotate: [{ axis: 'y', angle: Math.PI / 2 }] }),
+            fingerROffset: createModelMatrix({ translate: [0.4, 0.2, 0], rotate: [{ axis: 'y', angle: Math.PI / 2 }] }),
 
 
             upperLegLOffset: limbOffset,
@@ -150,10 +181,14 @@ export class mr_mime extends BaseCharacter {
             upperLegROffset: limbOffset,
             lowerLegROffset: limbOffset,
 
-            shoeLOffset: createModelMatrix({ translate: [0, -0.1, 0.3], rotate: [{ axis: 'x', angle: -Math.PI / 2 }] }),
-            shoeROffset: createModelMatrix({ translate: [0, -0.1, 0.3], rotate: [{ axis: 'x', angle: -Math.PI / 2 }] }),
-            shoeTipLOffset: createModelMatrix({ translate: [0, -0.4, 0.7] }),
-            shoeTipROffset: createModelMatrix({ translate: [0, -0.4, 0.7] }),
+            shoeLOffset: createModelMatrix({ translate: [0, 0.1, 1.8], 
+                rotate: [{ axis: 'x', angle: -Math.PI  }], scale: [0.5, 1, 1.7] }),
+            shoeROffset: createModelMatrix({ translate: [0, 0.1, 1.8], 
+                rotate: [{ axis: 'x', angle: -Math.PI }], scale: [0.5, 1, 1.7] }),
+            shoeTipLOffset: createModelMatrix({ translate: [0, 0.1, 1.6] }),
+            shoeTipROffset: createModelMatrix({ translate: [0, 0.1, 1.6] }),
+            backShoeLOffset: createModelMatrix({ translate: [0, 0.1, -0.5], scale: [0.4, 1, 2] }),
+            backShoeROffset: createModelMatrix({ translate: [0, 0.1, -0.5], scale: [0.4, 1, 2] })
         };
         // =================================================================
     }
@@ -163,41 +198,41 @@ export class mr_mime extends BaseCharacter {
         this.updateWorld();
     }
 
-    // --- drawObject() ---
-    // =================================================================
-    // ========== PERBAIKAN: Penggambaran Jari & Ujung Jari ==========
-    // =================================================================
     drawObject() {
         const C_PINK = [1.0, 0.71, 0.76];
         const C_CREAM = [1.0, 0.89, 0.83];
         const C_BLUE = [0.2, 0.53, 0.8];
-        const C_RED = [0.8, 0.1, 0.1];
         const C_WHITE = [1.0, 1.0, 1.0];
         const C_BLACK = [0.1, 0.1, 0.1];
 
-        // --- Gambar bagian lain (tidak berubah) ---
+        //BODY
         drawObject(this.meshes.bodyMesh.solid.buffers, makeModel(this.skeleton.torso, this.offsetMesh.bodyOffset), C_WHITE, GL.TRIANGLES);
-
         drawObject(this.meshes.redDotMesh.solid.buffers, makeModel(this.skeleton.torso, this.offsetMesh.redDotStomach), C_PINK, GL.TRIANGLES);
 
+        //KEPALA
         drawObject(this.meshes.headMesh.solid.buffers, makeModel(this.skeleton.head, this.offsetMesh.headOffset), C_CREAM, GL.TRIANGLES);
 
+        //RAMBUT
         drawObject(this.meshes.hairMeshL.solid.buffers, makeModel(this.skeleton.head, this.offsetMesh.hairLOffset), C_BLUE, GL.TRIANGLES);
         drawObject(this.meshes.hairMeshR.solid.buffers, makeModel(this.skeleton.head, this.offsetMesh.hairROffset), C_BLUE, GL.TRIANGLES);
-        // --- Gambar Rambut Bawah Kiri (Paraboloid) ---
+       
         drawObject(this.meshes.hairBottom1.solid.buffers, makeModel(this.skeleton.head, this.offsetMesh.hairBottom1LOffset), C_BLUE, GL.TRIANGLES);
         drawObject(this.meshes.hairBottom2.solid.buffers, makeModel(this.skeleton.head, this.offsetMesh.hairBottom2LOffset), C_BLUE, GL.TRIANGLES);
         drawObject(this.meshes.hairBottom3.solid.buffers, makeModel(this.skeleton.head, this.offsetMesh.hairBottom3LOffset), C_BLUE, GL.TRIANGLES);
-
-        // --- Gambar Rambut Bawah Kanan (Paraboloid) ---
+        
         drawObject(this.meshes.hairBottom1.solid.buffers, makeModel(this.skeleton.head, this.offsetMesh.hairBottom1ROffset), C_BLUE, GL.TRIANGLES);
         drawObject(this.meshes.hairBottom2.solid.buffers, makeModel(this.skeleton.head, this.offsetMesh.hairBottom2ROffset), C_BLUE, GL.TRIANGLES);
         drawObject(this.meshes.hairBottom3.solid.buffers, makeModel(this.skeleton.head, this.offsetMesh.hairBottom3ROffset), C_BLUE, GL.TRIANGLES);
 
+        //MUKA
         drawObject(this.meshes.cheekDotMesh.solid.buffers, makeModel(this.skeleton.head, this.offsetMesh.cheekLOffset), C_PINK, GL.TRIANGLES);
         drawObject(this.meshes.cheekDotMesh.solid.buffers, makeModel(this.skeleton.head, this.offsetMesh.cheekROffset), C_PINK, GL.TRIANGLES);
         drawObject(this.meshes.eyeMesh.solid.buffers, makeModel(this.skeleton.head, this.offsetMesh.eyeLOffset), C_WHITE, GL.TRIANGLES);
         drawObject(this.meshes.eyeMesh.solid.buffers, makeModel(this.skeleton.head, this.offsetMesh.eyeROffset), C_WHITE, GL.TRIANGLES);
+        drawObject(this.meshes.eyeBallMesh.solid.buffers, makeModel(this.skeleton.head, this.offsetMesh.eyeBallLOffset), C_BLACK, GL.TRIANGLES);
+        drawObject(this.meshes.eyeBallMesh.solid.buffers, makeModel(this.skeleton.head, this.offsetMesh.eyeBallROffset), C_BLACK, GL.TRIANGLES);
+        drawObject(this.meshes.mouthMesh.solid.buffers, makeModel(this.skeleton.head, this.offsetMesh.mouthOffset), C_BLACK, GL.TRIANGLES);
+
 
         drawObject(this.meshes.jointMesh.solid.buffers, makeModel(this.skeleton.shoulderL, this.offsetMesh.shoulderLOffset), C_PINK, GL.TRIANGLES);
         drawObject(this.meshes.jointMesh.solid.buffers, makeModel(this.skeleton.shoulderR, this.offsetMesh.shoulderROffset), C_PINK, GL.TRIANGLES);
@@ -211,8 +246,8 @@ export class mr_mime extends BaseCharacter {
         drawObject(this.meshes.limbMesh.solid.buffers, makeModel(this.skeleton.upperArmL, this.offsetMesh.upperArmLOffset), C_CREAM, GL.TRIANGLES);
         drawObject(this.meshes.limbMesh.solid.buffers, makeModel(this.skeleton.lowerArmL, this.offsetMesh.lowerArmLOffset), C_CREAM, GL.TRIANGLES);
 
-        drawObject(this.meshes.fingerMesh.solid.buffers, makeModel(this.skeleton.handL, this.offsetMesh.lowerLegLOffset), C_WHITE, GL.TRIANGLES);
-        drawObject(this.meshes.fingerMesh.solid.buffers, makeModel(this.skeleton.handR, this.offsetMesh.lowerLegROffset), C_WHITE, GL.TRIANGLES);
+        drawObject(this.meshes.fingerMesh.solid.buffers, makeModel(this.skeleton.handL, this.offsetMesh.fingerLOffset), C_WHITE, GL.TRIANGLES);
+        drawObject(this.meshes.fingerMesh.solid.buffers, makeModel(this.skeleton.handR, this.offsetMesh.fingerROffset), C_WHITE, GL.TRIANGLES);
 
 
         drawObject(this.meshes.limbMesh.solid.buffers, makeModel(this.skeleton.upperArmR, this.offsetMesh.upperArmROffset), C_CREAM, GL.TRIANGLES);
@@ -232,5 +267,7 @@ export class mr_mime extends BaseCharacter {
         drawObject(this.meshes.shoeMesh.solid.buffers, makeModel(this.skeleton.footR, this.offsetMesh.shoeROffset), C_BLUE, GL.TRIANGLES);
         drawObject(this.meshes.shoeTipMesh.solid.buffers, makeModel(this.skeleton.footL, this.offsetMesh.shoeTipLOffset), C_BLUE, GL.TRIANGLES);
         drawObject(this.meshes.shoeTipMesh.solid.buffers, makeModel(this.skeleton.footR, this.offsetMesh.shoeTipROffset), C_BLUE, GL.TRIANGLES);
+        drawObject(this.meshes.backShoeMesh.solid.buffers, makeModel(this.skeleton.footL, this.offsetMesh.backShoeLOffset), C_BLUE, GL.TRIANGLES);
+        drawObject(this.meshes.backShoeMesh.solid.buffers, makeModel(this.skeleton.footR, this.offsetMesh.backShoeROffset), C_BLUE, GL.TRIANGLES);
     }
 }
