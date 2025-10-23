@@ -24,6 +24,62 @@ export class env extends BaseCharacter {
             this.models.planks.push(createModelMatrix({ translate: [0, -2.6, zPos] }));
         }
 
+        // Ganti baris ini:
+        this.meshes.basePlane = createMesh(MeshUtils.generateBox, { params: [200, 0.2, 200], deferBuffer: false });
+
+        // Dengan yang ini:
+        this.meshes.basePlane = createMesh(MeshUtils.generateBox, { params: [200, 0.2, 150], deferBuffer: false });
+
+        // ... (setelah this.models.basePlane = ...)
+
+        // 5. DINDING SIRKUS
+        this.meshes.wallPanel = createMesh(MeshUtils.generateBox, { params: [5, 70, 1], deferBuffer: false }); // Lebar panel 5, tinggi 25
+        this.models.wallPanels = [];
+
+        const wallHeight = 12.5; // Setengah dari tinggi panel, untuk penempatan Y
+        const wallColors = [
+            [0.8, 0.15, 0.15], // Merah
+            [0.9, 0.9, 0.85]   // Putih Gading
+        ];
+        const panelWidth = 5;
+        const doorStart = 80; // Posisi X di mana pintu dimulai
+        const doorEnd = 95;   // Posisi X di mana pintu berakhir
+
+        // Dinding Belakang (Z = -75)
+        for (let x = -100; x < 100; x += panelWidth) {
+            const color = wallColors[(x / panelWidth) % 2 === 0 ? 0 : 1];
+            const model = createModelMatrix({ translate: [x + panelWidth / 2, wallHeight - 3.5, -75] });
+            this.models.wallPanels.push({ model, color });
+        }
+
+        // Dinding Depan (Z = 75) - dengan celah pintu
+        for (let x = -100; x < 100; x += panelWidth) {
+            if (x >= doorStart && x < doorEnd) continue; // Lewati panel ini untuk membuat pintu
+            const color = wallColors[(x / panelWidth) % 2 === 0 ? 0 : 1];
+            const model = createModelMatrix({ translate: [x + panelWidth / 2, wallHeight - 3.5, 75] });
+            this.models.wallPanels.push({ model, color });
+        }
+
+        // Dinding Kiri (X = -100)
+        for (let z = -75; z < 75; z += panelWidth) {
+            const color = wallColors[(z / panelWidth) % 2 === 0 ? 0 : 1];
+            const model = createModelMatrix({
+                translate: [-100, wallHeight - 3.5, z + panelWidth / 2],
+                rotate: [{ axis: 'y', angle: Math.PI / 2 }]
+            });
+            this.models.wallPanels.push({ model, color });
+        }
+
+        // Dinding Kanan (X = 100)
+        for (let z = -75; z < 75; z += panelWidth) {
+            const color = wallColors[(z / panelWidth) % 2 === 0 ? 0 : 1];
+            const model = createModelMatrix({
+                translate: [100, wallHeight - 3.5, z + panelWidth / 2],
+                rotate: [{ axis: 'y', angle: Math.PI / 2 }]
+            });
+            this.models.wallPanels.push({ model, color });
+        }
+
         this.meshes.spotlightPool = createMesh(MeshUtils.generateEllipticalCylinder, {
             params: [5, 5, 0.1, 0.1, 0.1, 64],
             deferBuffer: false
@@ -56,6 +112,9 @@ export class env extends BaseCharacter {
         const rowHeight = 2.5; // Ketinggian tiap baris
         const rowDepth = 5.0; // Kedalaman tiap baris
         const spectatorSpacing = 5; // Jarak antar penonton
+
+
+        // =============================
 
         // Helper function untuk membuat satu sisi tribun
         const createAudienceSide = (config) => {
@@ -110,7 +169,7 @@ export class env extends BaseCharacter {
 
 
         // 4. ALAS DASAR UNTUK SEMUANYA
-        this.meshes.basePlane = createMesh(MeshUtils.generateBox, { params: [200, 0.2, 200], deferBuffer: false });
+        this.meshes.basePlane = createMesh(MeshUtils.generateBox, { params: [200, 0.2, 150], deferBuffer: false });
         this.models.basePlane = createModelMatrix({ translate: [0, -3.5, 0] }); // Posisikan sedikit di bawah panggung
     }
 
@@ -172,13 +231,30 @@ export class env extends BaseCharacter {
 
         // === PERBAIKAN DI SINI ===
         // Loop melalui 'this.models.spectators' yang sudah dianimasikan
+        const clothingColors = [
+            [0.8, 0.2, 0.2],  // Merah
+            [0.2, 0.3, 0.8],  // Biru
+            [0.1, 0.5, 0.2],  // Hijau
+            [0.8, 0.8, 0.1],  // Kuning
+            [0.5, 0.2, 0.8]   // Ungu
+        ];
+        // Warna kulit untuk semua kepala
+        const skinTone = [0.85, 0.7, 0.62]; // Krem kulit
+
         this.models.spectators.forEach((spectator, i) => {
-            const color = (i % 5 < 3) ? [0.1, 0.1, 0.1] : [0.25, 0.25, 0.25];
+            const bodyColor = clothingColors[i % clothingColors.length];
 
             // Ambil model matrix dari objek 'spectator'
-            drawObject(this.meshes.spectatorBody.solid.buffers, spectator.bodyModel, color, GL.TRIANGLES);
-            drawObject(this.meshes.spectatorHead.solid.buffers, spectator.headModel, color, GL.TRIANGLES);
+            drawObject(this.meshes.spectatorBody.solid.buffers, spectator.bodyModel, bodyColor, GL.TRIANGLES); // Gunakan bodyColor
+            drawObject(this.meshes.spectatorHead.solid.buffers, spectator.headModel, skinTone, GL.TRIANGLES);   // Gunakan skinTone
         });
+
+        // ... (setelah kode menggambar penonton)
+
+        // --- MENGGAMBAR DINDING SIRKUS ---
+        for (const panel of this.models.wallPanels) {
+            drawObject(this.meshes.wallPanel.solid.buffers, panel.model, panel.color, GL.TRIANGLES);
+        }
     }
 }
 

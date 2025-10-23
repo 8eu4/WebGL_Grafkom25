@@ -122,8 +122,8 @@ export class mime_jr extends BaseCharacter {
         //MESH 
         this.meshes = {
             // BODY and BALL
-            bodyMesh: createMesh(MeshUtils.generateEllipticParaboloid, { params: [1, 1, 1, 1.5, 32, 16], deferBuffer: false }),
-            ballMesh: createMesh(MeshUtils.generateEllipsoid, { params: [0.45, 0.45, 0.45, 32, 64], deferBuffer: false }),
+            bodyMesh: createMesh(MeshUtils.generateEllipticParaboloid, { params: [1, 1, 1.1, 1.5, 32, 16], deferBuffer: false }),
+            ballMesh: createMesh(MeshUtils.generateEllipsoid, { params: [0.47, 0.47, 0.47, 32, 64], deferBuffer: false }),
             redDotBodyMesh: createMesh(MeshUtils.generateEllipsoid, { params: [0.3, 0.3, 0.3, 32, 64], deferBuffer: false }),
 
             // HEAD and HAIR
@@ -225,8 +225,8 @@ export class mime_jr extends BaseCharacter {
             // BALL BODY
             ball1: this.createBone("ball", "hip", { translate: [-0.4, 0, 1] }),
             ball2: this.createBone("ball", "hip", { translate: [0.4, 0, 1] }),
-            ball3: this.createBone("ball", "hip", { translate: [-1, 0, 0.42] }),
-            ball4: this.createBone("ball", "hip", { translate: [1, 0, 0.42] }),
+            ball3: this.createBone("ball", "hip", { translate: [-1, 0, 0.43] }),
+            ball4: this.createBone("ball", "hip", { translate: [1, 0, 0.43] }),
             ball5: this.createBone("ball", "hip", { translate: [0.9, 0, -0.4] }),
             ball6: this.createBone("ball", "hip", { translate: [-0.9, 0, -0.4] }),
             ball7: this.createBone("ball", "hip", { translate: [0.4, 0, -1] }),
@@ -378,6 +378,229 @@ export class mime_jr extends BaseCharacter {
         }
     }
 
+    animate(time) {
+        // --- DURASI BARU ---
+        const totalDuration = 20000;
+        const introDurationSeconds = 8;
+        const danceDurationSeconds = 12;
+
+        const t_total = (time % totalDuration) / totalDuration;
+        const introEndTime = introDurationSeconds / (introDurationSeconds + danceDurationSeconds);
+
+        // --- Variabel Gerakan ---
+        const maxLegSwing = Math.PI / 4;
+        const initialArmAngle = -Math.PI / 18; // -10 derajat (lengan kanan)
+        const armRiseAngle = Math.PI / 6;      // 30 derajat
+
+        if (t_total < introEndTime) {
+            // ======================================================
+            // === FASE INTRO BARU (0 -> 8 detik) ===
+            // ======================================================
+            const t_intro = t_total / introEndTime;
+
+            const walkForwardEnd = 2 / 8;
+            const poseEnd = 4 / 8;
+            const walkBackwardEnd = 6 / 8;
+
+            this.skeleton.neck.setLocalSpec({ rotate: [] });
+
+            if (t_intro < walkForwardEnd) {
+                // --- 1. Berjalan Maju (0-2 detik) ---
+                const phaseT = t_intro / walkForwardEnd;
+                const walkDistance = 1.5;
+                const smoothProgress = Math.sin(phaseT * Math.PI / 2);
+
+                // Gerakan maju (Translate)
+                const currentPos = [0, 0, phaseT * walkDistance];
+                this.skeleton.neck.setLocalSpec({ translate: currentPos });
+
+                // Gerakan kaki berjalan
+                const legAngle = Math.sin(phaseT * 2 * Math.PI) * maxLegSwing;
+                setLocalRotationAxisAngle(this.skeleton.leftLeg, 'x', -legAngle);
+                setLocalRotationAxisAngle(this.skeleton.rightLeg, 'x', legAngle);
+
+                // Lengan turun perlahan ke -10 derajat
+                const currentArmAngle = smoothProgress * initialArmAngle;
+                setLocalRotationAxisAngle(this.skeleton.leftUpperArm, 'z', -currentArmAngle); // Positif 10 derajat
+                setLocalRotationAxisAngle(this.skeleton.rightUpperArm, 'z', currentArmAngle);  // Negatif 10 derajat
+
+                // Mata kembali normal
+                this.skeleton.lefteye.setLocalSpec({ scale: [1, 1, 1] });
+
+            } else if (t_intro < poseEnd) {
+                // --- 2. Berhenti dan Pose (2-4 detik) ---
+                const phaseT = (t_intro - walkForwardEnd) / (poseEnd - walkForwardEnd);
+                const smoothProgress = Math.sin(phaseT * Math.PI / 2);
+                const walkDistance = 1.5;
+
+                this.skeleton.neck.setLocalSpec({ translate: [0, 0, walkDistance] });
+
+                // Kaki berhenti
+                setLocalRotationAxisAngle(this.skeleton.leftLeg, 'x', 0);
+                setLocalRotationAxisAngle(this.skeleton.rightLeg, 'x', 0);
+
+                // Lengan Kiri tetap di -10 derajat
+                setLocalRotationAxisAngle(this.skeleton.leftUpperArm, 'z', -initialArmAngle);
+
+                // Lengan Kanan naik perlahan ke 30 derajat
+                const currentRightArmAngle = initialArmAngle + smoothProgress * (armRiseAngle - initialArmAngle);
+                setLocalRotationAxisAngle(this.skeleton.rightUpperArm, 'z', currentRightArmAngle);
+
+                const maxPalmAngle = Math.PI / 2;
+                const currentPalmAngle = smoothProgress * maxPalmAngle;
+                setLocalRotationAxisAngle(this.skeleton.rightPalmArm, 'x', -currentPalmAngle);
+
+
+                // Mata kiri "wink"
+                this.skeleton.lefteye.setLocalSpec({ scale: [1, 0.01, 1] });
+
+            } else if (t_intro < walkBackwardEnd) {
+                // --- 3. Berjalan Mundur (4-6 detik) ---
+                const phaseT = (t_intro - poseEnd) / (walkBackwardEnd - poseEnd);
+                const smoothProgress = Math.sin(phaseT * Math.PI / 2);
+                const walkDistance = 1.5;
+
+                // Gerakan mundur (Translate)
+                const currentPos = [0, 0, walkDistance * (1 - phaseT)];
+                this.skeleton.neck.setLocalSpec({ translate: currentPos });
+
+                // Gerakan kaki berjalan mundur
+                const legAngle = Math.sin(phaseT * 2 * Math.PI) * maxLegSwing;
+                setLocalRotationAxisAngle(this.skeleton.leftLeg, 'x', -legAngle);
+                setLocalRotationAxisAngle(this.skeleton.rightLeg, 'x', legAngle);
+
+                // Mata kembali normal
+                this.skeleton.lefteye.setLocalSpec({ scale: [1, 1, 1] });
+
+            } else {
+                // --- 4. Transisi ke Tarian (6-8 detik) ---
+                const phaseT = (t_intro - walkBackwardEnd) / (1 - walkBackwardEnd);
+                const smoothProgress = Math.sin(phaseT * Math.PI / 2);
+
+                this.skeleton.neck.setLocalSpec({ translate: [0, 0, 0] });
+                setLocalRotationAxisAngle(this.skeleton.leftLeg, 'x', 0);
+                setLocalRotationAxisAngle(this.skeleton.rightLeg, 'x', 0);
+
+                // Kedua lengan kembali ke posisi 0 derajat (posisi awal tarian)
+                const finalRightArmAngle = armRiseAngle * (1 - smoothProgress);
+                const finalLeftArmAngle = -initialArmAngle * (1 - smoothProgress);
+                setLocalRotationAxisAngle(this.skeleton.rightUpperArm, 'z', finalRightArmAngle);
+                setLocalRotationAxisAngle(this.skeleton.leftUpperArm, 'z', finalLeftArmAngle);
+
+                const maxPalmAngle = Math.PI / 2;
+                const currentPalmAngle = (1 - smoothProgress) * maxPalmAngle;
+                setLocalRotationAxisAngle(this.skeleton.rightPalmArm, 'x', -currentPalmAngle);
+
+
+                this.skeleton.lefteye.setLocalSpec({ scale: [1, 1, 1] });
+            }
+
+        } else {
+            // ======================================================
+            // === FASE TARIAN LAMA (8 -> 20 detik) ===
+            // ======================================================
+            // Waktu dinormalisasi khusus untuk bagian tarian (0.0 -> 1.0 selama 12 detik)
+            const t_dance = (t_total - introEndTime) / (1 - introEndTime);
+
+            // --- SEMUA KODE ANIMASI LAMA ANDA DITEMPATKAN DI SINI ---
+            // (Saya sudah menyalin dan menyesuaikannya untuk Anda di bawah)
+            const maxArmAngle = Math.PI / 10;
+            const maxArmForwardAngle = Math.PI / 4;
+            const maxLegAngle = -Math.PI / 4;
+            const maxPalmAngle = Math.PI / 2;
+            const maxBodyTiltAngle = Math.PI / 10;
+            const pivotPoint = [0.5, -2.7, 0];
+            const phase1End = 2 / 12;
+            const phase2End = 6 / 12;
+            const phase3End = 10 / 12;
+
+            // Reset posisi translate dari intro
+            this.skeleton.neck.setLocalSpec({ translate: [0, 0, 0] });
+
+            if (t_dance < phase1End) {
+                const phaseT = t_dance / phase1End;
+                const smoothProgress = Math.sin(phaseT * Math.PI / 2);
+                const currentArmAngle = smoothProgress * maxArmAngle;
+                const currentLegAngle = smoothProgress * maxLegAngle;
+                setLocalRotationAxisAngle(this.skeleton.leftUpperArm, 'z', -currentArmAngle);
+                setLocalRotationAxisAngle(this.skeleton.rightUpperArm, 'z', currentArmAngle);
+                setLocalRotationAxisAngle(this.skeleton.leftLowerArm, 'z', -currentArmAngle);
+                setLocalRotationAxisAngle(this.skeleton.rightLowerArm, 'z', currentArmAngle);
+                setLocalRotationAxisAngle(this.skeleton.leftPalmArm, 'z', -currentArmAngle);
+                setLocalRotationAxisAngle(this.skeleton.rightPalmArm, 'z', currentArmAngle);
+                setLocalRotationAxisAngle(this.skeleton.rightLeg, 'x', -currentLegAngle);
+                this.skeleton.neck.setLocalSpec({ rotate: [] });
+                setLocalRotationAxisAngle(this.skeleton.shoulder, 'x', 0);
+            } else if (t_dance < phase2End) {
+                const phaseT = (t_dance - phase1End) / (phase2End - phase1End);
+                const smoothTiltProgress = Math.sin(phaseT * Math.PI / 2);
+                const currentBodyTilt = smoothTiltProgress * maxBodyTiltAngle;
+                setLocalRotationAxisAngle(this.skeleton.shoulder, 'x', currentBodyTilt);
+                const bodyRotation = phaseT * 4 * Math.PI;
+                setLocalRotationAxisAngle(this.skeleton.leftUpperArm, 'z', -maxArmAngle);
+                setLocalRotationAxisAngle(this.skeleton.rightUpperArm, 'z', maxArmAngle);
+                setLocalRotationAxisAngle(this.skeleton.leftLowerArm, 'z', -maxArmAngle);
+                setLocalRotationAxisAngle(this.skeleton.rightLowerArm, 'z', maxArmAngle);
+                setLocalRotationAxisAngle(this.skeleton.leftPalmArm, 'z', -maxArmAngle);
+                setLocalRotationAxisAngle(this.skeleton.rightPalmArm, 'z', maxArmAngle);
+                setLocalRotationAxisAngle(this.skeleton.rightLeg, 'x', -maxLegAngle);
+                const arbitraryRotation = { angle: -bodyRotation, axis: { point: pivotPoint, dir: [0, 1, 0] } };
+                this.skeleton.neck.setLocalSpec({ rotate: [arbitraryRotation] });
+            } else if (t_dance < phase3End) {
+                const phaseT = (t_dance - phase2End) / (phase3End - phase2End);
+                const smoothProgress = Math.sin(phaseT * Math.PI / 2);
+
+                const currentBodyTilt = (1 - smoothProgress) * maxBodyTiltAngle;
+                setLocalRotationAxisAngle(this.skeleton.shoulder, 'x', currentBodyTilt);
+
+                const bodyRotation = (4 * Math.PI) + (phaseT * 4 * Math.PI);
+                const currentArmAngle = (1 - smoothProgress) * maxArmAngle;
+                const currentArmForwardAngle = smoothProgress * maxArmForwardAngle;
+                const currentPalmAngle = smoothProgress * maxPalmAngle;
+
+                setLocalRotationAxisAngle(this.skeleton.leftUpperArm, 'z', -currentArmAngle);
+                setLocalRotationAxisAngle(this.skeleton.rightUpperArm, 'z', currentArmAngle);
+                setLocalRotationAxisAngle(this.skeleton.leftLowerArm, 'z', -currentArmAngle);
+                setLocalRotationAxisAngle(this.skeleton.rightLowerArm, 'z', currentArmAngle);
+                setLocalRotationAxisAngle(this.skeleton.leftPalmArm, 'z', -currentArmAngle);
+                setLocalRotationAxisAngle(this.skeleton.rightPalmArm, 'z', currentArmAngle);
+                setLocalRotationAxisAngle(this.skeleton.leftUpperArm, 'y', currentArmForwardAngle);
+                setLocalRotationAxisAngle(this.skeleton.rightUpperArm, 'y', -currentArmForwardAngle);
+                setLocalRotationAxisAngle(this.skeleton.leftLowerArm, 'y', currentArmForwardAngle);
+                setLocalRotationAxisAngle(this.skeleton.rightLowerArm, 'y', -currentArmForwardAngle);
+                setLocalRotationAxisAngle(this.skeleton.leftPalmArm, 'y', currentArmForwardAngle);
+                setLocalRotationAxisAngle(this.skeleton.rightPalmArm, 'y', -currentArmForwardAngle);
+                setLocalRotationAxisAngle(this.skeleton.leftPalmArm, 'x', -currentPalmAngle);
+                setLocalRotationAxisAngle(this.skeleton.rightPalmArm, 'x', -currentPalmAngle);
+                
+                setLocalRotationAxisAngle(this.skeleton.rightLeg, 'x', -maxLegAngle);
+                const arbitraryRotation = { angle: -bodyRotation, axis: { point: pivotPoint, dir: [0, 1, 0] } };
+                this.skeleton.neck.setLocalSpec({ rotate: [arbitraryRotation] });
+            } else {
+                const phaseT = (t_dance - phase3End) / (1 - phase3End);
+                const smoothProgress = Math.sin(phaseT * Math.PI / 2);
+                const currentLegAngle = (1 - smoothProgress) * maxLegAngle;
+                const currentArmForwardAngle = (1 - smoothProgress) * maxArmForwardAngle;
+                const currentPalmAngle = (1 - smoothProgress) * maxPalmAngle;
+                setLocalRotationAxisAngle(this.skeleton.leftUpperArm, 'z', 0);
+                setLocalRotationAxisAngle(this.skeleton.rightUpperArm, 'z', 0);
+                setLocalRotationAxisAngle(this.skeleton.leftUpperArm, 'y', currentArmForwardAngle);
+                setLocalRotationAxisAngle(this.skeleton.rightUpperArm, 'y', -currentArmForwardAngle);
+                setLocalRotationAxisAngle(this.skeleton.leftLowerArm, 'y', currentArmForwardAngle);
+                setLocalRotationAxisAngle(this.skeleton.rightLowerArm, 'y', -currentArmForwardAngle);
+                setLocalRotationAxisAngle(this.skeleton.leftPalmArm, 'y', currentArmForwardAngle);
+                setLocalRotationAxisAngle(this.skeleton.rightPalmArm, 'y', -currentArmForwardAngle);
+                setLocalRotationAxisAngle(this.skeleton.leftPalmArm, 'x', -currentPalmAngle);
+                setLocalRotationAxisAngle(this.skeleton.rightPalmArm, 'x', -currentPalmAngle);
+                setLocalRotationAxisAngle(this.skeleton.rightLeg, 'x', -currentLegAngle);
+                this.skeleton.neck.setLocalSpec({ rotate: [] });
+                setLocalRotationAxisAngle(this.skeleton.shoulder, 'x', 0);
+            }
+        }
+
+        // 💡 PENTING! Selalu panggil updateWorld() setelah memodifikasi tulang
+        this.updateWorld();
+    }
     // animate(time) {
     //     // Total durasi untuk satu siklus animasi (misalnya 4000ms atau 4 detik)
     //     const duration = 12000;
@@ -392,6 +615,13 @@ export class mime_jr extends BaseCharacter {
     //     const maxPalmAngle = Math.PI / 2;
     //     // --- TAMBAHAN BARU: Sudut maksimal tubuh condong ke depan ---
     //     const maxBodyTiltAngle = Math.PI / 10; // Condong sekitar 15 derajat
+
+    //     // --- PERUBAHAN BARU: Tentukan titik pivot di posisi kaki kiri ---
+    //     // Posisi ini dihitung dari root (neck) ke leftLeg
+    //     // neck -> shoulder -> hip -> butt -> leftLeg
+    //     // y: -0.3  -1.0  -0.1  -1.3 = -2.7
+    //     // x: 0     0     0     -0.5 = -0.5
+    //     const pivotPoint = [0.5, -2.7, 0];
 
     //     // Definisikan batas waktu untuk setiap fase (dalam skala 0.0 - 1.0)
     //     const phase1End = 2 / 12;  // 2 detik
@@ -414,18 +644,17 @@ export class mime_jr extends BaseCharacter {
     //         setLocalRotationAxisAngle(this.skeleton.rightLowerArm, 'z', currentArmAngle);
     //         setLocalRotationAxisAngle(this.skeleton.leftPalmArm, 'z', -currentArmAngle);
     //         setLocalRotationAxisAngle(this.skeleton.rightPalmArm, 'z', currentArmAngle);
-    //         setLocalRotationAxisAngle(this.skeleton.rightLeg, 'x', -currentLegAngle); // Arahnya sudah benar dari maxLegAngle
+    //         setLocalRotationAxisAngle(this.skeleton.rightLeg, 'x', -currentLegAngle);
 
     //         // Pastikan rotasi badan tetap 0 di fase ini
-    //         setLocalRotationAxisAngle(this.skeleton.neck, 'y', 0);
-    //         // === PERBAIKAN: Gunakan 'shoulder' untuk memastikan tubuh tegak ===
+    //         // --- PERUBAHAN: Hapus semua rotasi di neck ---
+    //         this.skeleton.neck.setLocalSpec({ rotate: [] });
     //         setLocalRotationAxisAngle(this.skeleton.shoulder, 'x', 0);
 
     //     } else if (t < phase2End) {
     //         // === FASE 2: 2 -> 6 detik (Putaran Pertama + Condong ke Depan) ===
     //         const phaseT = (t - phase1End) / (phase2End - phase1End);
-            
-    //         // === PERBAIKAN: Gunakan 'shoulder' untuk condong ke depan ===
+
     //         const smoothTiltProgress = Math.sin(phaseT * Math.PI / 2);
     //         const currentBodyTilt = smoothTiltProgress * maxBodyTiltAngle;
     //         setLocalRotationAxisAngle(this.skeleton.shoulder, 'x', currentBodyTilt);
@@ -442,15 +671,18 @@ export class mime_jr extends BaseCharacter {
     //         setLocalRotationAxisAngle(this.skeleton.rightPalmArm, 'z', maxArmAngle);
     //         setLocalRotationAxisAngle(this.skeleton.rightLeg, 'x', -maxLegAngle);
 
-    //         // Terapkan rotasi badan
-    //         setLocalRotationAxisAngle(this.skeleton.neck, 'y', bodyRotation);
+    //         // --- PERUBAHAN: Terapkan rotasi pada sumbu arbitrer ---
+    //         const arbitraryRotation = {
+    //             angle: -bodyRotation,
+    //             axis: { point: pivotPoint, dir: [0, 1, 0] }
+    //         };
+    //         this.skeleton.neck.setLocalSpec({ rotate: [arbitraryRotation] });
 
     //     } else if (t < phase3End) {
     //         // === FASE 3: 6 -> 10 detik (Putaran Kedua + Transisi Lengan + Tubuh Tegak) ===
     //         const phaseT = (t - phase2End) / (phase3End - phase2End);
     //         const smoothProgress = Math.sin(phaseT * Math.PI / 2);
 
-    //         // === PERBAIKAN: Gunakan 'shoulder' untuk tegak kembali ===
     //         const currentBodyTilt = (1 - smoothProgress) * maxBodyTiltAngle;
     //         setLocalRotationAxisAngle(this.skeleton.shoulder, 'x', currentBodyTilt);
 
@@ -462,7 +694,7 @@ export class mime_jr extends BaseCharacter {
     //         const currentArmForwardAngle = smoothProgress * maxArmForwardAngle;
     //         const currentPalmAngle = smoothProgress * maxPalmAngle;
 
-    //         // Terapkan gerakan lengan turun (Z-axis)
+    //        // Terapkan gerakan lengan turun (Z-axis)
     //         setLocalRotationAxisAngle(this.skeleton.leftUpperArm, 'z', -currentArmAngle);
     //         setLocalRotationAxisAngle(this.skeleton.rightUpperArm, 'z', currentArmAngle);
     //         setLocalRotationAxisAngle(this.skeleton.leftLowerArm, 'z', -currentArmAngle);
@@ -477,22 +709,25 @@ export class mime_jr extends BaseCharacter {
     //         setLocalRotationAxisAngle(this.skeleton.rightLowerArm, 'y', -currentArmForwardAngle);
     //         setLocalRotationAxisAngle(this.skeleton.leftPalmArm, 'y', currentArmForwardAngle);
     //         setLocalRotationAxisAngle(this.skeleton.rightPalmArm, 'y', -currentArmForwardAngle);
-
-    //         setLocalRotationAxisAngle(this.skeleton.leftPalmArm, 'x', currentPalmAngle);
+    //         setLocalRotationAxisAngle(this.skeleton.leftPalmArm, 'x', -currentPalmAngle);
     //         setLocalRotationAxisAngle(this.skeleton.rightPalmArm, 'x', -currentPalmAngle);
 
     //         // Kunci posisi kaki tetap terangkat
     //         setLocalRotationAxisAngle(this.skeleton.rightLeg, 'x', -maxLegAngle);
 
-    //         // Terapkan rotasi badan
-    //         setLocalRotationAxisAngle(this.skeleton.neck, 'y', bodyRotation);
+    //         // --- PERUBAHAN: Terapkan rotasi pada sumbu arbitrer ---
+    //         const arbitraryRotation = {
+    //             angle: -bodyRotation,
+    //             axis: { point: pivotPoint, dir: [0, 1, 0] }
+    //         };
+    //         this.skeleton.neck.setLocalSpec({ rotate: [arbitraryRotation] });
 
     //     } else {
     //         // === FASE 4: 10 -> 12 detik (Reset Posisi) ===
     //         const phaseT = (t - phase3End) / (1 - phase3End);
     //         const smoothProgress = Math.sin(phaseT * Math.PI / 2);
 
-    //         // Kaki turun dan Tangan kembali ke samping
+    //        // Kaki turun dan Tangan kembali ke samping
     //         const currentLegAngle = (1 - smoothProgress) * maxLegAngle;
     //         const currentArmForwardAngle = (1 - smoothProgress) * maxArmForwardAngle;
     //         const currentPalmAngle = (1 - smoothProgress) * maxPalmAngle;
@@ -509,178 +744,21 @@ export class mime_jr extends BaseCharacter {
     //         setLocalRotationAxisAngle(this.skeleton.leftPalmArm, 'y', currentArmForwardAngle);
     //         setLocalRotationAxisAngle(this.skeleton.rightPalmArm, 'y', -currentArmForwardAngle);
 
-    //         setLocalRotationAxisAngle(this.skeleton.leftPalmArm, 'x', currentPalmAngle);
+    //         setLocalRotationAxisAngle(this.skeleton.leftPalmArm, 'x', -currentPalmAngle);
     //         setLocalRotationAxisAngle(this.skeleton.rightPalmArm, 'x', -currentPalmAngle);
-            
+
     //         // Gerakkan kaki turun
     //         setLocalRotationAxisAngle(this.skeleton.rightLeg, 'x', currentLegAngle);
 
     //         // Pastikan badan berhenti berputar dan menghadap depan
-    //         setLocalRotationAxisAngle(this.skeleton.neck, 'y', 0); // Reset ke 0
-    //         // === PERBAIKAN: Gunakan 'shoulder' untuk memastikan tubuh tegak sempurna ===
+    //         // --- PERUBAHAN: Hapus semua rotasi di neck ---
+    //         this.skeleton.neck.setLocalSpec({ rotate: [] });
     //         setLocalRotationAxisAngle(this.skeleton.shoulder, 'x', 0);
     //     }
 
     //     // 💡 PENTING! Selalu panggil updateWorld() setelah memodifikasi tulang
     //     this.updateWorld();
     // }
-
-    animate(time) {
-        // Total durasi untuk satu siklus animasi (misalnya 4000ms atau 4 detik)
-        const duration = 12000;
-
-        // Buat 't' sebagai nilai yang berulang dari 0.0 hingga 1.0 sesuai durasi
-        const t = (time % duration) / duration;
-
-        // Tentukan sudut maksimum untuk gerakan
-        const maxArmAngle = Math.PI / 10; // Lengan naik 90 derajat
-        const maxArmForwardAngle = Math.PI / 4;
-        const maxLegAngle = -Math.PI / 4; // Kaki kanan ke belakang 72 derajat
-        const maxPalmAngle = Math.PI / 2;
-        // --- TAMBAHAN BARU: Sudut maksimal tubuh condong ke depan ---
-        const maxBodyTiltAngle = Math.PI / 10; // Condong sekitar 15 derajat
-
-        // --- PERUBAHAN BARU: Tentukan titik pivot di posisi kaki kiri ---
-        // Posisi ini dihitung dari root (neck) ke leftLeg
-        // neck -> shoulder -> hip -> butt -> leftLeg
-        // y: -0.3  -1.0  -0.1  -1.3 = -2.7
-        // x: 0     0     0     -0.5 = -0.5
-        const pivotPoint = [0.5, -2.7, 0];
-
-        // Definisikan batas waktu untuk setiap fase (dalam skala 0.0 - 1.0)
-        const phase1End = 2 / 12;  // 2 detik
-        const phase2End = 6 / 12;  // 2 + 4 detik
-        const phase3End = 10 / 12; // 6 + 4 detik
-
-        // --- Logika Fase Animasi ---
-        if (t < phase1End) {
-            // === FASE 1: 0 -> 2 detik (Angkat Lengan & Kaki) ===
-            const phaseT = t / phase1End;
-            const smoothProgress = Math.sin(phaseT * Math.PI / 2);
-
-            const currentArmAngle = smoothProgress * maxArmAngle;
-            const currentLegAngle = smoothProgress * maxLegAngle;
-
-            // Terapkan rotasi ke tulang yang sesuai
-            setLocalRotationAxisAngle(this.skeleton.leftUpperArm, 'z', -currentArmAngle);
-            setLocalRotationAxisAngle(this.skeleton.rightUpperArm, 'z', currentArmAngle);
-            setLocalRotationAxisAngle(this.skeleton.leftLowerArm, 'z', -currentArmAngle);
-            setLocalRotationAxisAngle(this.skeleton.rightLowerArm, 'z', currentArmAngle);
-            setLocalRotationAxisAngle(this.skeleton.leftPalmArm, 'z', -currentArmAngle);
-            setLocalRotationAxisAngle(this.skeleton.rightPalmArm, 'z', currentArmAngle);
-            setLocalRotationAxisAngle(this.skeleton.rightLeg, 'x', -currentLegAngle);
-
-            // Pastikan rotasi badan tetap 0 di fase ini
-            // --- PERUBAHAN: Hapus semua rotasi di neck ---
-            this.skeleton.neck.setLocalSpec({ rotate: [] });
-            setLocalRotationAxisAngle(this.skeleton.shoulder, 'x', 0);
-
-        } else if (t < phase2End) {
-            // === FASE 2: 2 -> 6 detik (Putaran Pertama + Condong ke Depan) ===
-            const phaseT = (t - phase1End) / (phase2End - phase1End);
-            
-            const smoothTiltProgress = Math.sin(phaseT * Math.PI / 2);
-            const currentBodyTilt = smoothTiltProgress * maxBodyTiltAngle;
-            setLocalRotationAxisAngle(this.skeleton.shoulder, 'x', currentBodyTilt);
-
-            // Berputar 2 kali (4 * PI)
-            const bodyRotation = phaseT * 4 * Math.PI;
-
-            // Kunci posisi lengan dan kaki tetap terangkat
-            setLocalRotationAxisAngle(this.skeleton.leftUpperArm, 'z', -maxArmAngle);
-            setLocalRotationAxisAngle(this.skeleton.rightUpperArm, 'z', maxArmAngle);
-            setLocalRotationAxisAngle(this.skeleton.leftLowerArm, 'z', -maxArmAngle);
-            setLocalRotationAxisAngle(this.skeleton.rightLowerArm, 'z', maxArmAngle);
-            setLocalRotationAxisAngle(this.skeleton.leftPalmArm, 'z', -maxArmAngle);
-            setLocalRotationAxisAngle(this.skeleton.rightPalmArm, 'z', maxArmAngle);
-            setLocalRotationAxisAngle(this.skeleton.rightLeg, 'x', -maxLegAngle);
-
-            // --- PERUBAHAN: Terapkan rotasi pada sumbu arbitrer ---
-            const arbitraryRotation = {
-                angle: -bodyRotation,
-                axis: { point: pivotPoint, dir: [0, 1, 0] }
-            };
-            this.skeleton.neck.setLocalSpec({ rotate: [arbitraryRotation] });
-
-        } else if (t < phase3End) {
-            // === FASE 3: 6 -> 10 detik (Putaran Kedua + Transisi Lengan + Tubuh Tegak) ===
-            const phaseT = (t - phase2End) / (phase3End - phase2End);
-            const smoothProgress = Math.sin(phaseT * Math.PI / 2);
-
-            const currentBodyTilt = (1 - smoothProgress) * maxBodyTiltAngle;
-            setLocalRotationAxisAngle(this.skeleton.shoulder, 'x', currentBodyTilt);
-
-            // Lanjutkan putaran dari 2x ke 4x (dari 4*PI ke 8*PI)
-            const bodyRotation = (4 * Math.PI) + (phaseT * 4 * Math.PI);
-
-            // Sambil berputar, lengan turun dan bergerak maju
-            const currentArmAngle = (1 - smoothProgress) * maxArmAngle;
-            const currentArmForwardAngle = smoothProgress * maxArmForwardAngle;
-            const currentPalmAngle = smoothProgress * maxPalmAngle;
-
-           // Terapkan gerakan lengan turun (Z-axis)
-            setLocalRotationAxisAngle(this.skeleton.leftUpperArm, 'z', -currentArmAngle);
-            setLocalRotationAxisAngle(this.skeleton.rightUpperArm, 'z', currentArmAngle);
-            setLocalRotationAxisAngle(this.skeleton.leftLowerArm, 'z', -currentArmAngle);
-            setLocalRotationAxisAngle(this.skeleton.rightLowerArm, 'z', currentArmAngle);
-            setLocalRotationAxisAngle(this.skeleton.leftPalmArm, 'z', -currentArmAngle);
-            setLocalRotationAxisAngle(this.skeleton.rightPalmArm, 'z', currentArmAngle);
-
-            // Terapkan gerakan lengan maju (Y-axis)
-            setLocalRotationAxisAngle(this.skeleton.leftUpperArm, 'y', currentArmForwardAngle);
-            setLocalRotationAxisAngle(this.skeleton.rightUpperArm, 'y', -currentArmForwardAngle);
-            setLocalRotationAxisAngle(this.skeleton.leftLowerArm, 'y', currentArmForwardAngle);
-            setLocalRotationAxisAngle(this.skeleton.rightLowerArm, 'y', -currentArmForwardAngle);
-            setLocalRotationAxisAngle(this.skeleton.leftPalmArm, 'y', currentArmForwardAngle);
-            setLocalRotationAxisAngle(this.skeleton.rightPalmArm, 'y', -currentArmForwardAngle);
-
-            // Kunci posisi kaki tetap terangkat
-            setLocalRotationAxisAngle(this.skeleton.rightLeg, 'x', -maxLegAngle);
-
-            // --- PERUBAHAN: Terapkan rotasi pada sumbu arbitrer ---
-            const arbitraryRotation = {
-                angle: -bodyRotation,
-                axis: { point: pivotPoint, dir: [0, 1, 0] }
-            };
-            this.skeleton.neck.setLocalSpec({ rotate: [arbitraryRotation] });
-
-        } else {
-            // === FASE 4: 10 -> 12 detik (Reset Posisi) ===
-            const phaseT = (t - phase3End) / (1 - phase3End);
-            const smoothProgress = Math.sin(phaseT * Math.PI / 2);
-
-           // Kaki turun dan Tangan kembali ke samping
-            const currentLegAngle = (1 - smoothProgress) * maxLegAngle;
-            const currentArmForwardAngle = (1 - smoothProgress) * maxArmForwardAngle;
-            const currentPalmAngle = (1 - smoothProgress) * maxPalmAngle;
-
-            // Kunci lengan di posisi bawah (Z-axis = 0)
-            setLocalRotationAxisAngle(this.skeleton.leftUpperArm, 'z', 0);
-            setLocalRotationAxisAngle(this.skeleton.rightUpperArm, 'z', 0);
-
-            // Gerakkan lengan kembali ke samping (Y-axis)
-            setLocalRotationAxisAngle(this.skeleton.leftUpperArm, 'y', currentArmForwardAngle);
-            setLocalRotationAxisAngle(this.skeleton.rightUpperArm, 'y', -currentArmForwardAngle);
-            setLocalRotationAxisAngle(this.skeleton.leftLowerArm, 'y', currentArmForwardAngle);
-            setLocalRotationAxisAngle(this.skeleton.rightLowerArm, 'y', -currentArmForwardAngle);
-            setLocalRotationAxisAngle(this.skeleton.leftPalmArm, 'y', currentArmForwardAngle);
-            setLocalRotationAxisAngle(this.skeleton.rightPalmArm, 'y', -currentArmForwardAngle);
-
-            setLocalRotationAxisAngle(this.skeleton.leftPalmArm, 'x', currentPalmAngle);
-            setLocalRotationAxisAngle(this.skeleton.rightPalmArm, 'x', -currentPalmAngle);
-            
-            // Gerakkan kaki turun
-            setLocalRotationAxisAngle(this.skeleton.rightLeg, 'x', currentLegAngle);
-
-            // Pastikan badan berhenti berputar dan menghadap depan
-            // --- PERUBAHAN: Hapus semua rotasi di neck ---
-            this.skeleton.neck.setLocalSpec({ rotate: [] });
-            setLocalRotationAxisAngle(this.skeleton.shoulder, 'x', 0);
-        }
-
-        // 💡 PENTING! Selalu panggil updateWorld() setelah memodifikasi tulang
-        this.updateWorld();
-    }
 
 
     drawObject() {
@@ -766,7 +844,7 @@ export class mime_jr extends BaseCharacter {
         drawObject(this.meshes.buttMesh.solid.buffers, makeModel(this.skeleton.butt, this.offsetMesh.buttOffset), [0.157, 0.392, 0.522], GL.TRIANGLES)
         drawObject(this.meshes.legMesh.solid.buffers, makeModel(this.skeleton.leftLeg, this.offsetMesh.leftLegOffset), [0.157, 0.392, 0.522], GL.TRIANGLES)
         drawObject(this.meshes.legMesh.solid.buffers, makeModel(this.skeleton.rightLeg, this.offsetMesh.rightLegOffset), [0.157, 0.392, 0.522], GL.TRIANGLES)
-        drawObject(this.meshes.legEngselMesh.solid.buffers, makeModel(this.skeleton.leftLeg, this.offsetMesh.leftLegEngselOffset),  [0.157, 0.392, 0.522], GL.TRIANGLES)
-        drawObject(this.meshes.legEngselMesh.solid.buffers, makeModel(this.skeleton.rightLeg, this.offsetMesh.rightLegEngselOffset),  [0.157, 0.392, 0.522], GL.TRIANGLES)
+        drawObject(this.meshes.legEngselMesh.solid.buffers, makeModel(this.skeleton.leftLeg, this.offsetMesh.leftLegEngselOffset), [0.157, 0.392, 0.522], GL.TRIANGLES)
+        drawObject(this.meshes.legEngselMesh.solid.buffers, makeModel(this.skeleton.rightLeg, this.offsetMesh.rightLegEngselOffset), [0.157, 0.392, 0.522], GL.TRIANGLES)
     }
 }
