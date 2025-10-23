@@ -11,13 +11,34 @@ export class mr_rime extends BaseCharacter {
     constructor() {
         super();
 
-        const upperHat = createMesh(MeshUtils.generateEllipsoid, { params: [1.5, 1.3, 1.5, 32, 64], deferBuffer: false });
-        // const hatCloser = createMesh(MeshUtils.generateHyperboloid2Sheets, { params: [1, 1, 0.5, 32, 32, 1.0], cutOptions: { percent: 0.5, axis: "z", keep: "lower" }, deferBuffer: false });
+        const wingsHatCurve = Curves.cubicBezier3D(
+            [0, 0, 0],   // p0 (awal)
+            [-0.5, 0.1, 0],   // p1 (kontrol 1)
+            [-1, 0.4, 0], // p2 (kontrol 2)
+            [-1.2, 0.5, 0]    // p3 (akhir)
+        );
 
+        const iceShoesCurve = Curves.cubicBezier3D(
+            [0, 0, 0],   // p0 (awal)
+            [0, 0, 0.7],   // p1 (kontrol 1)
+            [0, 1, 0.9], // p2 (kontrol 2)
+            [0, 1, 1.2]    // p3 (akhir)
+        );
 
         //MESH 
         this.meshes = {
             // upperHat: upperHat,
+
+            //HAT
+
+            upperHat: createMesh(MeshUtils.generateEllipsoid, { params: [1, 1, 1, 32, 64], deferBuffer: false }),
+            lowerHat: createMesh(MeshUtils.generateTorus, { params: [1.2, 0.3, 64, 24], deferBuffer: false }),
+            wingCurvesHat: createMesh(MeshUtilsCurves.generateVariableTube, {
+                params: [wingsHatCurve, 0, 1, 50, [0.15, 0.2, 0.25], 24, { capped: true }],
+                deferBuffer: false
+            }),
+            wingHat: createMesh(MeshUtils.generateEllipticParaboloid, { params: [1, 0.6, 7, 1.2, 32, 32], deferBuffer: false }),
+            wingCurveConnect: createMesh(MeshUtils.generateEllipsoid, { params: [0.245, 0.245, 0.25, 32, 64], deferBuffer: false }),
 
 
             lowerBody: createMesh(MeshUtils.generateEllipsoid, { params: [2.25, 1.85, 2.05, 32, 64], deferBuffer: false }),
@@ -54,13 +75,89 @@ export class mr_rime extends BaseCharacter {
             hands: createMesh(MeshUtils.generateEllipsoid, { params: [0.5, 0.4, 0.2, 32, 64], deferBuffer: false }),
             thumbs: createMesh(MeshUtils.generateEllipsoid, { params: [0.4, 0.2, 0.2, 32, 64], deferBuffer: false }),
 
+            // LEGS
+            upperLegs: createMesh(MeshUtils.generateEllipsoid, { params: [0.8, 0.8, 0.8, 32, 64], deferBuffer: false }),
+            lowerLegs: createMesh(MeshUtils.generateEllipsoid, { params: [0.2, 0.2, 0.2, 32, 64], deferBuffer: false }),
 
+            blackShoes: createMesh(MeshUtils.generateEllipsoid, { params: [0.3, 0.3, 0.3, 32, 64], deferBuffer: false }),
+
+            iceShoes: createMesh(MeshUtils.generateEllipsoid, { params: [0.4, 0.4, 0.4, 32, 64], deferBuffer: false }),
+            connectShoes: createMesh(MeshUtils.generateEllipticalCylinder, { params: [0.37, 0.33, 0.2, 0.2, 0.8, 64, 1, true], deferBuffer: false }),
+            shoePads: createMesh(MeshUtils.generateEllipsoid, { params: [0.2, 0.1, 0.4, 32, 64], deferBuffer: false }),
 
 
 
         }
 
         this.offsetMesh = {
+
+
+            //HAT
+            lowerHatOffset: createModelMatrix({
+                translate: [0, 0.6, 0]
+            }),
+            upperHatOffset: createModelMatrix({
+                translate: [0, 0.8, 0]
+            }),
+
+
+            //WINGSHAT
+            rightWingCurvesHatOffset: createModelMatrix({
+                translate: [-1.4, 0.7, 0],
+                rotate: [
+                    { axis: "z", angle: Math.PI / -8 },
+                ]
+            }),
+            leftWingCurvesHatOffset: createModelMatrix({
+                translate: [1.4, 0.7, 0],
+
+                rotate: [
+                    { axis: "y", angle: Math.PI },
+                    { axis: "z", angle: Math.PI / -8 },
+                ]
+            }),
+
+            leftWingOffset1: createModelMatrix({
+                translate: [-3.2, 0.7, 0],
+                rotate: [
+                    { axis: "x", angle: Math.PI / -2 },
+                    { axis: "y", angle: Math.PI / 3.9 }
+                ]
+            }),
+            leftWingOffset2: createModelMatrix({
+                translate: [-2.5, 0.15, 0],
+                rotate: [
+                    { axis: "x", angle: Math.PI / -2 },
+                    { axis: "y", angle: Math.PI / 4.4 }
+                ],
+                scale: [0.8, 0.8, 0.8]
+            }),
+            rightWingOffset1: createModelMatrix({
+                translate: [3.2, 0.7, 0],
+                rotate: [
+                    { axis: "x", angle: Math.PI / -2 },
+                    { axis: "y", angle: Math.PI / -3.9 }
+                ]
+            }),
+            rightWingOffset2: createModelMatrix({
+                translate: [2.5, 0.15, 0],
+                rotate: [
+                    { axis: "x", angle: Math.PI / -2 },
+                    { axis: "y", angle: Math.PI / -4.4 }
+                ],
+                scale: [0.8, 0.8, 0.8]
+            }),
+
+
+            rightWingCurveConnectOffset: createModelMatrix({
+                translate: [-2.4, 1.68, 0],
+            }),
+            leftWingCurveConnectOffset: createModelMatrix({
+                translate: [2.4, 1.68, 0],
+            }),
+
+
+
 
             lowerBodyOffset: createModelMatrix({
                 translate: [0, -0.7, 0]
@@ -256,6 +353,62 @@ export class mr_rime extends BaseCharacter {
                 translate: [1.5, 0.3, 1.4]
             }),
 
+
+            //LEGS
+            blueLeftUpperLegOffset: createModelMatrix({
+                translate: [0, -0.4, 0]
+            }),
+            blueRightUpperLegOffset: createModelMatrix({
+                translate: [0, -0.4, 0]
+            }),
+
+            blueLeftLowerLegOffset: createModelMatrix({
+                translate: [0, 0, 0]
+            }),
+            blueRightLowerLegOffset: createModelMatrix({
+                translate: [0, 0, 0]
+            }),
+
+
+            blackLeftShoesOffset: createModelMatrix({
+                translate: [0, 0, 0.05]
+            }),
+            blackRightShoesOffset: createModelMatrix({
+                translate: [0, 0, 0.05]
+            }),
+
+            iceLeftShoesOffset: createModelMatrix({
+                translate: [0, 0.12, 0.9]
+            }),
+            iceRightShoesOffset: createModelMatrix({
+                translate: [0, 0.12, 0.9]
+            }),
+
+
+            leftShoeConnect: createModelMatrix({
+                translate: [0, -0.02, 0.4],
+                rotate: [
+                    { axis: "x", angle: Math.PI / 2.3 }
+                ]
+            }),
+            rightShoeConnect: createModelMatrix({
+                translate: [0, -0.02, 0.4],
+                rotate: [
+                    { axis: "x", angle: Math.PI / 2.3 }
+                ]
+            }),
+
+
+            leftShoePad: createModelMatrix({
+                translate: [0, -0.25, 0.5]
+            }),
+            rightShoePad: createModelMatrix({
+                translate: [0, -0.25, 0.5]
+            }),
+
+
+
+
         }
 
         this.skeleton = {
@@ -272,8 +425,16 @@ export class mr_rime extends BaseCharacter {
             rightHand: this.createBone("rightHand", "rightElbow", { translate: [-1.8, 0, 0] }),
             leftHand: this.createBone("leftHand", "leftElbow", { translate: [1.8, 0, 0] }),
 
+            lowerHip: this.createBone("lowerHip", "hip", { translate: [0, -1.8, 0] }),
 
+            upperLeftLeg: this.createBone("upperLeftLeg", "lowerHip", { translate: [1.25, 0, 0] }),
+            upperRightLeg: this.createBone("upperRightLeg", "lowerHip", { translate: [-1.25, 0, 0] }),
 
+            leftKnee: this.createBone("leftKnee", "upperLeftLeg", { translate: [0, -1.25, 0] }),
+            rightKnee: this.createBone("rightKnee", "upperRightLeg", { translate: [0, -1.25, 0] }),
+
+            rightShoes: this.createBone("rightShoes", "rightKnee", { translate: [0, -0.4, 0] }),
+            leftShoes: this.createBone("leftShoes", "leftKnee", { translate: [0, -0.4, 0] }),
 
             hat: this.createBone("hat", "head", { translate: [0, 0, 0] }),
 
@@ -294,6 +455,25 @@ export class mr_rime extends BaseCharacter {
         //Shoes and staff color 0.514, 0.792, 0.957
         //face 0.91, 0.78, 0.808
         //BLACK 0.392, 0.361, 0.467
+
+        //HAT
+        drawObject(this.meshes.lowerHat.solid.buffers, makeModel(this.skeleton.head, this.offsetMesh.lowerHatOffset), [0.392, 0.361, 0.467], GL.TRIANGLES)
+        drawObject(this.meshes.upperHat.solid.buffers, makeModel(this.skeleton.head, this.offsetMesh.upperHatOffset), [0.392, 0.361, 0.467], GL.TRIANGLES)
+
+        //Winghat
+        drawObject(this.meshes.wingCurvesHat.solid.buffers, makeModel(this.skeleton.head, this.offsetMesh.leftWingCurvesHatOffset), [0.392, 0.361, 0.467], GL.TRIANGLES)
+        drawObject(this.meshes.wingCurvesHat.solid.buffers, makeModel(this.skeleton.head, this.offsetMesh.rightWingCurvesHatOffset), [0.392, 0.361, 0.467], GL.TRIANGLES)
+
+        drawObject(this.meshes.wingHat.solid.buffers, makeModel(this.skeleton.head, this.offsetMesh.leftWingOffset1), [0.392, 0.361, 0.467], GL.TRIANGLES)
+        drawObject(this.meshes.wingHat.solid.buffers, makeModel(this.skeleton.head, this.offsetMesh.leftWingOffset2), [0.392, 0.361, 0.467], GL.TRIANGLES)
+        drawObject(this.meshes.wingHat.solid.buffers, makeModel(this.skeleton.head, this.offsetMesh.rightWingOffset1), [0.392, 0.361, 0.467], GL.TRIANGLES)
+        drawObject(this.meshes.wingHat.solid.buffers, makeModel(this.skeleton.head, this.offsetMesh.rightWingOffset2), [0.392, 0.361, 0.467], GL.TRIANGLES)
+
+        drawObject(this.meshes.wingCurveConnect.solid.buffers, makeModel(this.skeleton.head, this.offsetMesh.leftWingCurveConnectOffset), [0.392, 0.361, 0.467], GL.TRIANGLES)
+        drawObject(this.meshes.wingCurveConnect.solid.buffers, makeModel(this.skeleton.head, this.offsetMesh.rightWingCurveConnectOffset), [0.392, 0.361, 0.467], GL.TRIANGLES)
+
+
+
 
         //HEAD
         drawObject(this.meshes.blackHead.solid.buffers, makeModel(this.skeleton.head, this.offsetMesh.blackHeadOffset), [0.392, 0.361, 0.467], GL.TRIANGLES)
@@ -363,6 +543,23 @@ export class mr_rime extends BaseCharacter {
 
         drawObject(this.meshes.fingers.solid.buffers, makeModel(this.skeleton.rightHand, this.offsetMesh.rightFingersOffset), [0.941, 0.914, 0.937], GL.TRIANGLES)
         drawObject(this.meshes.fingers.solid.buffers, makeModel(this.skeleton.leftHand, this.offsetMesh.leftFingersOffset), [0.941, 0.914, 0.937], GL.TRIANGLES)
+
+        //LEGS
+        drawObject(this.meshes.upperLegs.solid.buffers, makeModel(this.skeleton.upperLeftLeg, this.offsetMesh.blueLeftUpperLegOffset), [0.341, 0.549, 0.957], GL.TRIANGLES)
+        drawObject(this.meshes.upperLegs.solid.buffers, makeModel(this.skeleton.upperRightLeg, this.offsetMesh.blueRightUpperLegOffset), [0.341, 0.549, 0.957], GL.TRIANGLES)
+        drawObject(this.meshes.lowerLegs.solid.buffers, makeModel(this.skeleton.leftKnee, this.offsetMesh.blueLeftLowerLegOffset), [0.341, 0.549, 0.957], GL.TRIANGLES)
+        drawObject(this.meshes.lowerLegs.solid.buffers, makeModel(this.skeleton.rightKnee, this.offsetMesh.blueRightLowerLegOffset), [0.341, 0.549, 0.957], GL.TRIANGLES)
+
+        drawObject(this.meshes.blackShoes.solid.buffers, makeModel(this.skeleton.leftShoes, this.offsetMesh.blackLeftShoesOffset), [0.392, 0.361, 0.467], GL.TRIANGLES)
+        drawObject(this.meshes.blackShoes.solid.buffers, makeModel(this.skeleton.rightShoes, this.offsetMesh.blackRightShoesOffset), [0.392, 0.361, 0.467], GL.TRIANGLES)
+        drawObject(this.meshes.iceShoes.solid.buffers, makeModel(this.skeleton.rightShoes, this.offsetMesh.iceRightShoesOffset), [0.6, 0.886, 0.957], GL.TRIANGLES)
+        drawObject(this.meshes.iceShoes.solid.buffers, makeModel(this.skeleton.leftShoes, this.offsetMesh.iceLeftShoesOffset), [0.6, 0.886, 0.957], GL.TRIANGLES)
+
+        drawObject(this.meshes.connectShoes.solid.buffers, makeModel(this.skeleton.rightShoes, this.offsetMesh.rightShoeConnect), [0.6, 0.886, 0.957], GL.TRIANGLES)
+        drawObject(this.meshes.connectShoes.solid.buffers, makeModel(this.skeleton.leftShoes, this.offsetMesh.leftShoeConnect), [0.6, 0.886, 0.957], GL.TRIANGLES)
+
+        // drawObject(this.meshes.shoePads.solid.buffers, makeModel(this.skeleton.rightShoes, this.offsetMesh.rightShoePad), [0.6, 0.886, 0.957], GL.TRIANGLES)
+        // drawObject(this.meshes.shoePads.solid.buffers, makeModel(this.skeleton.leftShoes, this.offsetMesh.leftShoePad), [0.6, 0.886, 0.957], GL.TRIANGLES)
 
 
     }
