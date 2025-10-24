@@ -381,7 +381,7 @@ export class mime_jr extends BaseCharacter {
     animate(time) {
 
         const yOffset = 0.15;
-        const xOffset = 0;
+        const xOffset = -20;
         const zOffset = 0;
 
         
@@ -515,7 +515,7 @@ export class mime_jr extends BaseCharacter {
             const maxLegAngle = -Math.PI / 4;
             const maxPalmAngle = Math.PI / 2;
             const maxBodyTiltAngle = Math.PI / 10;
-            const pivotPoint = [0.5 + xOffset, -2.7 + yOffset, 0 + zOffset];
+            const pivotPoint = [0.5 , -2.7 + yOffset, 0 + zOffset];
             const phase1End = 2 / 12;
             const phase2End = 6 / 12;
             const phase3End = 10 / 12;
