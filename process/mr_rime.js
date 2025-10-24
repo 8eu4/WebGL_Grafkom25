@@ -634,17 +634,17 @@ export class mr_rime extends BaseCharacter {
             setRotation(this.skeleton.leftShoulder, 0, 0, leftShoulderZ);
             setRotation(this.skeleton.leftElbow, leftElbowX, 0, leftElbowZ);
 
-
             const headLookSpeed = 2.0;
-            const headLookAmount = Math.PI / 8;
-            const lookAngle = Math.sin(phaseTime * headLookSpeed) * headLookAmount;
-            const rotationAxis = [0, 1, 0]; // Sumbu Y
-
-            const arbitraryHeadRotation = { angle: lookAngle, axis: { dir: rotationAxis } };
-            this.skeleton.head.setLocalSpec({ rotate: [arbitraryHeadRotation] });
-
-
-
+            const headLookAmountY = Math.PI / 8; // Max rotasi kiri/kanan
+            const headLookAmountZ = Math.PI / 40; // Sedikit tilt
+            const headY = Math.sin(phaseTime * headLookSpeed) * headLookAmountY;
+            const headZ = Math.sin(phaseTime * headLookSpeed * 0.7) * headLookAmountZ; // Tilt sedikit beda frekuensi
+            this.skeleton.head.setLocalSpec({
+                rotate: [
+                    { axis: 'y', angle: headY },
+                    { axis: 'z', angle: headZ }
+                ]
+            });
 
             // Simpan pose akhir
             this.lastPose = {
@@ -666,9 +666,9 @@ export class mr_rime extends BaseCharacter {
                 rightElbow_x: 0,
                 rightElbow_y: rightArmStatic.rightElbow_y,
                 rightElbow_z: 0,
-                head_arbitrary_angle: lookAngle,
-                head_arbitrary_axis_dir: rotationAxis
-
+                head_x: 0,
+                head_y: headY,
+                head_z: headZ,
             };
         }
 
@@ -699,9 +699,7 @@ export class mr_rime extends BaseCharacter {
                 rightShoulder_z: rightArmStatic.rightShoulder_z,
                 rightElbow_x: 0,
                 rightElbow_y: rightArmStatic.rightElbow_y,
-                rightElbow_z: 0,
-                head_arbitrary_angle: 0,
-                head_arbitrary_axis_dir: [0, 1, 0]
+                rightElbow_z: 0
             };
 
             const hipYOffset = lerp(posePrev.hipYOffset, poseNext.hipYOffset, t);
@@ -724,15 +722,19 @@ export class mr_rime extends BaseCharacter {
                 lerp(posePrev.leftElbow_z, poseNext.leftElbow_z, t)
             );
 
-            const startAngle = posePrev.head_arbitrary_angle || 0;
-            const currentAngle = lerp(startAngle, poseNext.head_arbitrary_angle, t);
-            const currentAxisDir = posePrev.head_arbitrary_axis_dir || [0, 1, 0];
-
-            const arbitraryHeadRotation = { angle: currentAngle, axis: { dir: currentAxisDir } };
-            this.skeleton.head.setLocalSpec({ rotate: [arbitraryHeadRotation] });
-
             setRightArmStatic(); // Tangan kanan tetap
 
+            const headLookSpeedIdle = 1.5;
+            const headLookAmountYIdle = Math.PI / 10; // Sedikit lebih sempit
+            const headLookAmountZIdle = Math.PI / 50;
+            const headY = Math.sin(phaseTime * headLookSpeedIdle) * headLookAmountYIdle;
+            const headZ = Math.sin(phaseTime * headLookSpeedIdle * 0.8) * headLookAmountZIdle;
+            this.skeleton.head.setLocalSpec({
+                rotate: [
+                    { axis: 'y', angle: headY },
+                    { axis: 'z', angle: headZ }
+                ]
+            });
 
 
             // Simpan pose akhir (akan sama dengan poseNext saat t=1)
@@ -755,8 +757,9 @@ export class mr_rime extends BaseCharacter {
                 rightElbow_x: 0,
                 rightElbow_y: rightArmStatic.rightElbow_y,
                 rightElbow_z: 0,
-                head_arbitrary_angle: currentAngle,
-                head_arbitrary_axis_dir: currentAxisDir
+                head_x: 0,
+                head_y: headY,
+                head_z: headZ
             };
         }
 
@@ -786,14 +789,6 @@ export class mr_rime extends BaseCharacter {
             setRotation(this.skeleton.leftShoulder, leftShoulderX, leftShoulderY, leftShoulderZ);
             setRotation(this.skeleton.leftElbow, leftElbowX, 0, leftElbowZ);
 
-            const headLookSpeedIdle = 1.5;
-            const headLookAmountIdle = Math.PI / 10;
-            const lookAngle = Math.sin(phaseTime * headLookSpeedIdle) * headLookAmountIdle;
-            const rotationAxis = [0, 1, 0]; // Sumbu Y
-
-            const arbitraryHeadRotation = { angle: lookAngle, axis: { dir: rotationAxis } };
-            this.skeleton.head.setLocalSpec({ rotate: [arbitraryHeadRotation] });
-
             // Simpan pose akhir
             this.lastPose = {
                 hipYOffset: 0,
@@ -813,9 +808,7 @@ export class mr_rime extends BaseCharacter {
                 rightShoulder_z: rightArmStatic.rightShoulder_z,
                 rightElbow_x: 0,
                 rightElbow_y: rightArmStatic.rightElbow_y,
-                rightElbow_z: 0,
-                head_arbitrary_angle: lookAngle,
-                head_arbitrary_axis_dir: rotationAxis
+                rightElbow_z: 0
             };
         }
 
@@ -845,9 +838,7 @@ export class mr_rime extends BaseCharacter {
                 rightShoulder_z: rightArmStatic.rightShoulder_z,
                 rightElbow_x: 0,
                 rightElbow_y: rightArmStatic.rightElbow_y,
-                rightElbow_z: 0,
-                head_arbitrary_angle: 0,
-                head_arbitrary_axis_dir: [0, 1, 0]
+                rightElbow_z: 0
             };
 
             const hipYOffset = lerp(posePrev.hipYOffset, poseNext.hipYOffset, t);
@@ -871,13 +862,6 @@ export class mr_rime extends BaseCharacter {
                 lerp(posePrev.leftElbow_z, poseNext.leftElbow_z, t)
             );
 
-            const startAngle = posePrev.head_arbitrary_angle || 0;
-            const currentAngle = lerp(startAngle, poseNext.head_arbitrary_angle, t);
-            const currentAxisDir = posePrev.head_arbitrary_axis_dir || [0, 1, 0];
-
-            const arbitraryHeadRotation = { angle: currentAngle, axis: { dir: currentAxisDir } };
-            this.skeleton.head.setLocalSpec({ rotate: [arbitraryHeadRotation] });
-
             setRightArmStatic();
 
             // Simpan pose akhir
@@ -899,9 +883,7 @@ export class mr_rime extends BaseCharacter {
                 rightShoulder_z: rightArmStatic.rightShoulder_z,
                 rightElbow_x: 0,
                 rightElbow_y: rightArmStatic.rightElbow_y,
-                rightElbow_z: 0,
-                head_arbitrary_angle: currentAngle,
-                head_arbitrary_axis_dir: currentAxisDir
+                rightElbow_z: 0
             };
         }
 
