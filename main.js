@@ -55,17 +55,29 @@ function main() {
   GL.enable(GL.DEPTH_TEST);
 
   function animate(time) {
+    mr_mime1.xOffset = 20; // Update xOffset setiap frame
     // Panggil fungsi update pergerakan WASD
     updateCameraMovement(); // CAMERA
 
     cameraUpdate(); // -------------- update bone localSpecs ---------------- // TODO // Animate HUMAN // human.animate(time) // mime_jr1.animate(time); // mr_rime1.animate(time);
 
+    //ANIMATE
+    mime_jr1.animate(time);
     mr_mime1.animate(time);
+    
+    // mr_rime1.animate(time);
     environment.animate(time); // Animate here! //.. // ------------------------ Draw Object ------------- // TODO // Draw HUMAN // human.drawObject(); // mime_jr1.drawObject(); // Gambar environment dulu agar di belakang
 
+    //DRAW OBJECT
+    mime_jr1.drawObject(); // mr_rime1.drawObject(); // Draw here! //.. // REVIEW --------------- Draw bone ---------------- // mime_jr1.root.drawHelper(); // dibuang jika tidak mau lihat bone // mr_rime1.root.drawHelper(); // dibuang jika tidak mau lihat bone //
+    mr_mime1.drawObject(); // mr_rime1.drawObject(); // Draw here! //.. // REVIEW --------------- Draw bone ---------------- // mime_jr1.root.drawHelper(); // dibuang jika tidak mau lihat bone // mr_rime1.root.drawHelper(); // dibuang jika tidak mau lihat bone //
+    // mr_rime1.drawObject(); // mr_rime1.drawObject(); // Draw here! //.. // REVIEW --------------- Draw bone ---------------- // mime_jr1.root.drawHelper(); // dibuang jika tidak mau lihat bone //
     environment.drawObject();
 
-    mr_mime1.drawObject(); // mr_rime1.drawObject(); // Draw here! //.. // REVIEW --------------- Draw bone ---------------- // mime_jr1.root.drawHelper(); // dibuang jika tidak mau lihat bone // mr_rime1.root.drawHelper(); // dibuang jika tidak mau lihat bone // mr_mime1.root.drawHelper(); // Bone helper dimatikan
+    //BONE REVIEW
+    // mime_jr1.root.drawHelper(); // dibuang jika tidak mau lihat bone //
+    // mr_mime1.root.drawHelper(); // dibuang jika tidak mau lihat bone //
+    // mr_rime1.root.drawHelper(); // dibuang jika tidak mau lihat bone //
     GL.flush();
     requestAnimationFrame(animate);
   }
@@ -115,7 +127,7 @@ function otherFactor() {
       camera.target[0] -= dx * panSpeed * right[0] - dy * panSpeed * up[0];
       camera.target[1] -= dx * panSpeed * right[1] - dy * panSpeed * up[1];
       camera.target[2] -= dx * panSpeed * right[2] - dy * panSpeed * up[2];
-      
+
     } else if (e.buttons === 1) {
       // --- ORBIT MODE (Klik Kiri) ---
       camera.yaw -= dx * 0.005;
@@ -279,38 +291,38 @@ function otherFactor() {
   );
 }
 
-// BARU: Fungsi untuk memproses input keyboard WASD
+// FUNGSI GERAK
 function updateCameraMovement() {
-  const moveSpeed = 0.15; // Atur kecepatan gerak kamera
+  const moveSpeed = 0.15; 
   const sinYaw = Math.sin(camera.yaw);
-  const cosYaw = Math.cos(camera.yaw); // Vektor gerak (awal [0,0,0])
+  const cosYaw = Math.cos(camera.yaw); 
 
-  const move = vec3.fromValues(0, 0, 0); // Maju (W) - Arah pandang horizontal
-
+  const move = vec3.fromValues(0, 0, 0); 
+  //Keybind
   if (keyState["w"]) {
     vec3.add(move, move, [-sinYaw, 0, -cosYaw]);
-  } // Mundur (S)
+  }
   if (keyState["s"]) {
     vec3.add(move, move, [sinYaw, 0, cosYaw]);
-  } // Kiri (A) - Vektor 'right' negatif
+  }
 
   if (keyState["a"]) {
     vec3.add(move, move, [-cosYaw, 0, sinYaw]);
-  } // Kanan (D) - Vektor 'right'
+  }
   if (keyState["d"]) {
     vec3.add(move, move, [cosYaw, 0, -sinYaw]);
-  } // Naik (Spasi)
+  }
 
   if (keyState[" "]) {
     vec3.add(move, move, [0, 1, 0]);
-  } // Turun (Shift)
+  } 
   if (keyState["shift"]) {
     vec3.add(move, move, [0, -1, 0]);
-  } // Normalisasi vektor gerak agar kecepatan diagonal = kecepatan lurus
+  } 
 
   if (move[0] !== 0 || move[1] !== 0 || move[2] !== 0) {
     vec3.normalize(move, move);
-    vec3.scale(move, move, moveSpeed); // Terapkan gerakan ke TARGET kamera
+    vec3.scale(move, move, moveSpeed); 
     vec3.add(camera.target, camera.target, move);
   }
 }
