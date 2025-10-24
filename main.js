@@ -64,14 +64,14 @@ function main() {
     //ANIMATE
     mime_jr1.animate(time);
     mr_mime1.animate(time);
-    
-    // mr_rime1.animate(time);
+    mr_rime1.animate(time);
+
     environment.animate(time); // Animate here! //.. // ------------------------ Draw Object ------------- // TODO // Draw HUMAN // human.drawObject(); // mime_jr1.drawObject(); // Gambar environment dulu agar di belakang
 
     //DRAW OBJECT
     mime_jr1.drawObject(); // mr_rime1.drawObject(); // Draw here! //.. // REVIEW --------------- Draw bone ---------------- // mime_jr1.root.drawHelper(); // dibuang jika tidak mau lihat bone // mr_rime1.root.drawHelper(); // dibuang jika tidak mau lihat bone //
     mr_mime1.drawObject(); // mr_rime1.drawObject(); // Draw here! //.. // REVIEW --------------- Draw bone ---------------- // mime_jr1.root.drawHelper(); // dibuang jika tidak mau lihat bone // mr_rime1.root.drawHelper(); // dibuang jika tidak mau lihat bone //
-    // mr_rime1.drawObject(); // mr_rime1.drawObject(); // Draw here! //.. // REVIEW --------------- Draw bone ---------------- // mime_jr1.root.drawHelper(); // dibuang jika tidak mau lihat bone //
+    mr_rime1.drawObject(); // mr_rime1.drawObject(); // Draw here! //.. // REVIEW --------------- Draw bone ---------------- // mime_jr1.root.drawHelper(); // dibuang jika tidak mau lihat bone //
     environment.drawObject();
 
     //BONE REVIEW
@@ -293,7 +293,7 @@ function otherFactor() {
 
 // FUNGSI GERAK
 function updateCameraMovement() {
-  const moveSpeed = 0.15; 
+  const moveSpeed = 0.15
   const sinYaw = Math.sin(camera.yaw);
   const cosYaw = Math.cos(camera.yaw); 
 
@@ -310,7 +310,7 @@ function updateCameraMovement() {
     vec3.add(move, move, [-cosYaw, 0, sinYaw]);
   }
   if (keyState["d"]) {
-    vec3.add(move, move, [cosYaw, 0, -sinYaw]);
+    vec3.add(move, move, [cosYaw , 0, -sinYaw]);
   }
 
   if (keyState[" "]) {

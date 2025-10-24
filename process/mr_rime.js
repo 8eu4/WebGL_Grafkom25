@@ -429,7 +429,7 @@ export class mr_rime extends BaseCharacter {
         this.meshes.staff.solid.buffers = MeshUtils.createMeshBuffers(GL, rawStaffMesh, attribs);
 
         this.skeleton = {
-            hip: this.createBone("hip", null, { translate: [0, 1.1, 0] }),
+            hip: this.createBone("hip", null, { translate: [0, 1.6, 0] }),
             neck: this.createBone("neck", "hip", { translate: [0, 2.5, 0] }),
             head: this.createBone("head", "neck", { translate: [0, 0.7, 0] }),
 
