@@ -150,12 +150,35 @@ export function setLocalRotationAxisAngle(bone, axisLabel, angle) {
 }
 
 export function getAxisAngle(bone, axisLabel) {
-    const cur = bone.localSpec.rotate || [];
+    const cur = bone.localSpec.rotate || [];    
     for (let i = cur.length - 1; i >= 0; --i) {
         const r = cur[i];
         if (r.axis === axisLabel) return r.angle;
     }
     return 0;
+}
+
+export function getLocalRotation(bone) {
+    const rot = { x: 0, y: 0, z: 0 };
+    const cur = bone.localSpec.rotate || [];
+    for (let i = cur.length - 1; i >= 0; --i) {
+        const r = cur[i];
+        if (r.axis === 'x' || r.axis === 'y' || r.axis === 'z')
+            rot[r.axis] = r.angle;
+    }
+    return rot;
+}
+
+export function getLocalTransform(bone) {
+    const t = bone.localSpec?.translate
+        ? bone.localSpec.translate.slice()
+        : [0, 0, 0];
+    const r = getLocalRotation(bone);
+    const s = Array.isArray(bone.localSpec?.scale)
+        ? bone.localSpec.scale.slice()
+        : [1, 1, 1];
+
+    return { translate: t, rotate: r, scale: s };
 }
 
 // Apply bone transform + offset lalu bufferkan mesh
