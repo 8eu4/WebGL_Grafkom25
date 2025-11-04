@@ -118,6 +118,8 @@ export class env extends BaseCharacter {
         // Mesh untuk penonton (gaya siluet)
         this.meshes.spectatorBody = createMesh(MeshUtils.generateEllipsoid, { params: [2, 5, 2, 8, 16], deferBuffer: false });
         this.meshes.spectatorHead = createMesh(MeshUtils.generateEllipsoid, { params: [1.4, 1.4, 1.4, 8, 16], deferBuffer: false });
+        this.meshes.spectatorArm = createMesh(MeshUtils.generateEllipticalCylinder, { params: [0.2, 0.2, 0.3, 0.3, 3, 32, 1, true], deferBuffer: false }); // Lengan panjang kurus
+        this.meshes.spectatorEye = createMesh(MeshUtils.generateEllipsoid, { params: [0.1, 0.3, 0.1, 8, 8], deferBuffer: false }); // Bola kecil untuk mata
 
         // Array untuk menyimpan model matrix dari semua elemen tribun
         this.models.platforms = [];
@@ -136,7 +138,13 @@ export class env extends BaseCharacter {
         const spectatorSpacing = 5; // Jarak antar penonton
 
 
-        // =============================
+        const clothingColors = [
+            [0.8, 0.2, 0.2],  // Merah
+            [0.2, 0.3, 0.8],  // Biru
+            [0.1, 0.5, 0.2],  // Hijau
+            [0.8, 0.8, 0.1],  // Kuning
+            [0.5, 0.2, 0.8]   // Ungu
+        ];
 
         // Helper function untuk membuat satu sisi tribun
         const createAudienceSide = (config) => {
@@ -159,35 +167,97 @@ export class env extends BaseCharacter {
                 for (let s = 0; s < seatsPerRow; s++) {
                     const bodyPos = vec3.clone(firstSeatPos);
                     vec3.scaleAndAdd(bodyPos, bodyPos, config.rowDir, s * spectatorSpacing);
-                    this.models.spectatorBodies.push(createModelMatrix({ translate: bodyPos }));
+                    // this.models.spectatorBodies.push(createModelMatrix({ translate: bodyPos }));
 
                     const headPos = vec3.clone(bodyPos);
                     vec3.add(headPos, headPos, [0, 5.5, 0]); // Posisi kepala di atas badan
-                    this.models.spectatorHeads.push(createModelMatrix({ translate: headPos }));
+                    // this.models.spectatorHeads.push(createModelMatrix({ translate: headPos }));
 
-                    // --- PERBAIKAN DI SINI ---
-                    // Clone the vectors to store a snapshot of their values, not a reference.
+                    // Tentukan offset dan sumbu rotasi berdasarkan rotasi tribun
+                    let armOffsetX, armOffsetZ, rotationAxis;
+                    const armY = 4; // Ketinggian lengan dari pusat badan
+                    const armDist = 1.9; // Jarak lengan dari pusat badan
+                    const armDistr = -1.9; // Jarak lengan dari pusat badan
+
+                    if (config.rotation === 0) { // Untuk tribun depan dan belakang
+                        armOffsetX = armDist;
+                        armOffsetZ = 0;
+                        rotationAxis = 'z'; // Rotasi mengangkat lengan terjadi di sumbu Z
+                    } else { // Untuk tribun kiri dan kanan
+                        armOffsetX = 0;
+                        armOffsetZ = armDistr;
+                        rotationAxis = 'x'; // Rotasi mengangkat lengan terjadi di sumbu X
+                    }
+
+                    // Tentukan posisi awal lengan kiri dan kanan
+                    const leftArmPos = vec3.clone(bodyPos);
+                    vec3.add(leftArmPos, leftArmPos, [-armOffsetX, armY, -armOffsetZ]);
+
+                    const rightArmPos = vec3.clone(bodyPos);
+                    vec3.add(rightArmPos, rightArmPos, [armOffsetX, armY, armOffsetZ]);
+
+                    // --- TAMBAHKAN BLOK KODE INI ---
+                    let leftEyePos, rightEyePos;
+                    const eyeYOffset = 0.2; // Sedikit di atas pusat kepala
+                    const eyeForwardDist = 1.3; // Seberapa "maju" mata dari pusat kepala
+                    const eyeSpacing = 0.5; // Jarak antara kedua mata
+
+                    if (config.rotation === 0) { // Untuk tribun DEPAN dan BELAKANG (menghadap sumbu Z)
+                        let actualEyeForwardDist;
+                        // TAMBAHKAN PENGECEKAN INI:
+                        // Jika posisi awal Z negatif, itu adalah tribun BELAKANG.
+                        if (config.startPos[2] < 0) {
+                            actualEyeForwardDist = 1.3; // Mata harus maju ke arah Z positif
+                        } else { // Jika tidak, itu adalah tribun DEPAN.
+                            actualEyeForwardDist = -1.3; // Mata harus maju ke arah Z negatif
+                        }
+
+                        // Gunakan variabel yang sudah ditentukan
+                        leftEyePos = vec3.add(vec3.create(), headPos, [-eyeSpacing, eyeYOffset, actualEyeForwardDist]);
+                        rightEyePos = vec3.add(vec3.create(), headPos, [eyeSpacing, eyeYOffset, actualEyeForwardDist]);
+                    }
+                    else { // Untuk tribun KIRI dan KANAN (menghadap sumbu X)
+                        // Arah hadap tergantung sisi tribun
+                        const faceDirection = config.startPos[0] > 0 ? -1 : 1; // Kanan (-X), Kiri (+X)
+                        leftEyePos = vec3.add(vec3.create(), headPos, [eyeForwardDist * faceDirection, eyeYOffset, -eyeSpacing]);
+                        rightEyePos = vec3.add(vec3.create(), headPos, [eyeForwardDist * faceDirection, eyeYOffset, eyeSpacing]);
+                    }
+
+                    // Simpan posisi awal DAN rotasi tribun untuk animasi
                     this.initialSpectatorData.push({
-                        body: vec3.clone(bodyPos), // Clone the body position
-                        head: vec3.clone(headPos), // Clone the head position
+                        body: vec3.clone(bodyPos),
+                        head: vec3.clone(headPos),
+                        leftArm: vec3.clone(leftArmPos),
+                        rightArm: vec3.clone(rightArmPos),
+                        leftEye: vec3.clone(leftEyePos),     // <-- TAMBAHKAN INI
+                        rightEye: vec3.clone(rightEyePos),   // <-- TAMBAHKAN INI
                         row: r,
-                        seat: s
+                        seat: s,
+                        rotation: config.rotation
                     });
 
-                    // Buat model matrix awal yang akan diubah di 'animate'
+                    // Buat model matrix untuk lengan dengan rotasi yang benar
+                    const randomColor = clothingColors[Math.floor(Math.random() * clothingColors.length)];
+                    const armAngle = Math.PI / 3;
+
                     this.models.spectators.push({
                         bodyModel: createModelMatrix({ translate: bodyPos }),
-                        headModel: createModelMatrix({ translate: headPos })
+                        headModel: createModelMatrix({ translate: headPos }),
+                        leftArmModel: createModelMatrix({ /* ... */ }),
+                        rightArmModel: createModelMatrix({ /* ... */ }),
+                        leftEyeModel: createModelMatrix({ translate: leftEyePos }),   // <-- TAMBAHKAN INI
+                        rightEyeModel: createModelMatrix({ translate: rightEyePos }), // <-- TAMBAHKAN INI
+                        color: randomColor
                     });
                 }
             }
         };
 
         // Buat 4 sisi tribun
-        createAudienceSide({ startPos: [0, -2, -35], depthDir: [0, 0, -1], rowDir: [1, 0, 0], rotation: 0 }); // Belakang
-        createAudienceSide({ startPos: [0, -2, 35], depthDir: [0, 0, 1], rowDir: [-1, 0, 0], rotation: 0 }); // Depan
-        createAudienceSide({ startPos: [-70, -2, 0], depthDir: [-1, 0, 0], rowDir: [0, 0, -1], rotation: Math.PI / 2 }); // Kiri
-        createAudienceSide({ startPos: [70, -2, 0], depthDir: [1, 0, 0], rowDir: [0, 0, 1], rotation: Math.PI / 2 }); // Kanan
+        createAudienceSide({ startPos: [0, -2, -45], depthDir: [0, 0, -1], rowDir: [1, 0, 0], rotation: 0 }); // Belakang
+        createAudienceSide({ startPos: [0, -2, 45], depthDir: [0, 0, 1], rowDir: [-1, 0, 0], rotation: 0 }); // Depan
+        createAudienceSide({ startPos: [-75, -2, 0], depthDir: [-1, 0, 0], rowDir: [0, 0, -1], rotation: Math.PI / 2 }); // Kiri
+        createAudienceSide({ startPos: [75, -2, 0], depthDir: [1, 0, 0], rowDir: [0, 0, 1], rotation: Math.PI / 2 }); // Kanan
 
 
         // 4. ALAS DASAR UNTUK SEMUANYA
@@ -237,13 +307,6 @@ export class env extends BaseCharacter {
         // Simpan mesh dan model matrixnya
         this.meshes.circusRoof = { solid: { buffers: MeshUtils.createMeshBuffers(GL, roofRawMesh, attribs) } };
         this.models.circusRoof = mat4.create(); // Matriks identitas karena posisi sudah di world space
-
-
-        // ... (setelah kode this.models.circusRoof = mat4.create();)
-
-        // ... (setelah kode atap merah solid)
-
-        // ... (setelah kode atap merah solid)
 
         // 9. MOTIF STRIPE PUTIH UNTUK ATAP (VERSI SEGMENT MAPPING)
         this.models.roofStripes = [];
@@ -323,10 +386,6 @@ export class env extends BaseCharacter {
             this.models.roofStripes.push({ buffers: buf_right, model: mat4.create(), color: whiteColor });
         }
 
-        // ... (setelah kode loop atap kanan luar)
-
-        // ... (setelah kode atap luar)
-
         // 10. MOTIF STRIPE PUTIH UNTUK ATAP BAGIAN DALAM
         this.models.innerRoofStripes = [];
         const innerStripeOffset = -0.1;
@@ -398,16 +457,45 @@ export class env extends BaseCharacter {
             const wave = (Math.sin(baseWave + phaseShift) + 1) / 2;
             const yOffset = wave * height;
 
-            // Hitung posisi baru dengan menambahkan offset Y
+            // Posisi baru untuk badan dan kepala (sudah ada)
             const newBodyPos = vec3.clone(initialData.body);
             newBodyPos[1] += yOffset;
-
             const newHeadPos = vec3.clone(initialData.head);
             newHeadPos[1] += yOffset;
 
-            // Buat ulang model matrix dengan posisi baru
-            this.models.spectators[i].bodyModel = createModelMatrix({ translate: newBodyPos });
-            this.models.spectators[i].headModel = createModelMatrix({ translate: newHeadPos });
+            // TAMBAHKAN: Hitung posisi baru untuk lengan
+            const newLeftArmPos = vec3.clone(initialData.leftArm);
+            newLeftArmPos[1] += yOffset;
+            const newRightArmPos = vec3.clone(initialData.rightArm);
+            newRightArmPos[1] += yOffset;
+
+            // --- TAMBAHKAN KODE INI ---
+            const newLeftEyePos = vec3.clone(initialData.leftEye);
+            newLeftEyePos[1] += yOffset;
+            const newRightEyePos = vec3.clone(initialData.rightEye);
+            newRightEyePos[1] += yOffset;
+            // --- AKHIR KODE TAMBAHAN ---
+
+
+            const rotationAxis = initialData.rotation === 0 ? 'z' : 'x';
+            const armAngle = Math.PI / 10.5;
+
+            // --- PERBARUI OBJEK DI BAWAH INI ---
+            this.models.spectators[i] = {
+                bodyModel: createModelMatrix({ translate: newBodyPos }),
+                headModel: createModelMatrix({ translate: newHeadPos }),
+                leftArmModel: createModelMatrix({
+                    translate: newLeftArmPos,
+                    rotate: [{ axis: rotationAxis, angle: armAngle }]
+                }),
+                rightArmModel: createModelMatrix({
+                    translate: newRightArmPos,
+                    rotate: [{ axis: rotationAxis, angle: -armAngle }]
+                }),
+                leftEyeModel: createModelMatrix({ translate: newLeftEyePos }),     // <-- TAMBAHKAN INI
+                rightEyeModel: createModelMatrix({ translate: newRightEyePos }),   // <-- TAMBAHKAN INI
+                color: this.models.spectators[i].color
+            };
         });
 
     }
@@ -456,26 +544,23 @@ export class env extends BaseCharacter {
             drawObject(this.meshes.platform.solid.buffers, platformModel, [0.3, 0.3, 0.35], GL.TRIANGLES);
         }
 
-        // === PERBAIKAN DI SINI ===
-        // Loop melalui 'this.models.spectators' yang sudah dianimasikan
-        const clothingColors = [
-            [0.8, 0.2, 0.2],  // Merah
-            [0.2, 0.3, 0.8],  // Biru
-            [0.1, 0.5, 0.2],  // Hijau
-            [0.8, 0.8, 0.1],  // Kuning
-            [0.5, 0.2, 0.8]   // Ungu
-        ];
-        // Warna kulit untuk semua kepala
         const skinTone = [0.85, 0.7, 0.62]; // Krem kulit
 
-        this.models.spectators.forEach((spectator, i) => {
-            const bodyColor = clothingColors[i % clothingColors.length];
+        this.models.spectators.forEach((spectator) => {
+            const bodyColor = spectator.color;
 
-            // Ambil model matrix dari objek 'spectator'
-            drawObject(this.meshes.spectatorBody.solid.buffers, spectator.bodyModel, bodyColor, GL.TRIANGLES); // Gunakan bodyColor
-            drawObject(this.meshes.spectatorHead.solid.buffers, spectator.headModel, skinTone, GL.TRIANGLES);   // Gunakan skinTone
+            // Gambar badan dan kepala (sudah ada)
+            drawObject(this.meshes.spectatorBody.solid.buffers, spectator.bodyModel, bodyColor, GL.TRIANGLES);
+            drawObject(this.meshes.spectatorHead.solid.buffers, spectator.headModel, skinTone, GL.TRIANGLES);
+
+            // TAMBAHKAN INI: Gambar lengan kiri dan kanan
+            drawObject(this.meshes.spectatorArm.solid.buffers, spectator.leftArmModel, skinTone, GL.TRIANGLES);
+            drawObject(this.meshes.spectatorArm.solid.buffers, spectator.rightArmModel, skinTone, GL.TRIANGLES);
+
+            const eyeColor = [0.1, 0.1, 0.1]; // Warna hitam untuk mata
+            drawObject(this.meshes.spectatorEye.solid.buffers, spectator.leftEyeModel, eyeColor, GL.TRIANGLES);
+            drawObject(this.meshes.spectatorEye.solid.buffers, spectator.rightEyeModel, eyeColor, GL.TRIANGLES);
         });
-
         // ... (setelah kode menggambar penonton)
 
         // --- MENGGAMBAR DINDING SIRKUS ---
