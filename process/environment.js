@@ -12,6 +12,19 @@ export class env extends BaseCharacter {
         this.meshes = {};
         this.models = {};
 
+        const CIRCUS_WIDTH = 300; // Lebar total (X-axis). Semula 200
+        const CIRCUS_DEPTH = 200; // Kedalaman total (Z-axis). Semula 150
+
+        const HALF_WIDTH = CIRCUS_WIDTH / 2;
+        const HALF_DEPTH = CIRCUS_DEPTH / 2;
+
+        const TRIBUNE_WIDTH = CIRCUS_WIDTH * 0.8; // Lebar tribun 80% dari lebar sirkus
+        const TRIBUNE_DEPTH = CIRCUS_DEPTH * 0.8; // Kedalaman tribun 80% dari kedalaman sirkus
+
+        // Tentukan jarak tribun dari dinding
+        const standMarginX = (CIRCUS_WIDTH - TRIBUNE_WIDTH) / 2; // Jarak tribun dari dinding X
+        const standMarginZ = (CIRCUS_DEPTH - TRIBUNE_DEPTH) / 2; // Jarak tribun dari dinding Z
+
         // 1. GEOMETRI DASAR PANGGUNG
         this.meshes.stageFloor = createMesh(MeshUtils.generateBox, { params: [60, 0.5, 25], deferBuffer: false });
         this.models.stageFloor = createModelMatrix({ translate: [0, -3, 0] });
@@ -46,13 +59,7 @@ export class env extends BaseCharacter {
         this.meshes.grassField = createMesh(MeshUtils.generateBox, { params: [500, 0.2, 500], deferBuffer: false });
         this.models.grassField = createModelMatrix({ translate: [0, -3.7, 0] }); // Posisikan di bawah alas krem
 
-        // Ganti baris ini:
-        this.meshes.basePlane = createMesh(MeshUtils.generateBox, { params: [200, 0.2, 200], deferBuffer: false });
-
-        // Dengan yang ini:
-        this.meshes.basePlane = createMesh(MeshUtils.generateBox, { params: [200, 0.2, 150], deferBuffer: false });
-
-        // ... (setelah this.models.basePlane = ...)
+        this.meshes.basePlane = createMesh(MeshUtils.generateBox, { params: [CIRCUS_WIDTH, 0.2, CIRCUS_DEPTH], deferBuffer: false });
 
         // 5. DINDING SIRKUS
         this.meshes.wallPanel = createMesh(MeshUtils.generateBox, { params: [5, 60, 1], deferBuffer: false }); // Lebar panel 5, tinggi 25
@@ -64,39 +71,39 @@ export class env extends BaseCharacter {
             [0.9, 0.9, 0.85]   // Putih Gading
         ];
         const panelWidth = 5;
-        const doorStart = 80; // Posisi X di mana pintu dimulai
-        const doorEnd = 95;   // Posisi X di mana pintu berakhir
+        const doorStart = HALF_WIDTH - 40; //  Posisi X di mana pintu dimulai
+        const doorEnd = HALF_WIDTH - 25;   // Posisi X di mana pintu berakhir
 
         // Dinding Belakang (Z = -75)
-        for (let x = -100; x < 100; x += panelWidth) {
+        for (let x = -HALF_WIDTH; x < HALF_WIDTH; x += panelWidth) {
             const color = wallColors[(x / panelWidth) % 2 === 0 ? 0 : 1];
-            const model = createModelMatrix({ translate: [x + panelWidth / 2, wallHeight - 3.5, -75] });
+            const model = createModelMatrix({ translate: [x + panelWidth / 2, wallHeight - 3.5, -HALF_DEPTH] });
             this.models.wallPanels.push({ model, color });
         }
 
         // Dinding Depan (Z = 75) - dengan celah pintu
-        for (let x = -100; x < 100; x += panelWidth) {
+        for (let x = -HALF_WIDTH; x < HALF_WIDTH; x += panelWidth) {
             if (x >= doorStart && x < doorEnd) continue; // Lewati panel ini untuk membuat pintu
             const color = wallColors[(x / panelWidth) % 2 === 0 ? 0 : 1];
-            const model = createModelMatrix({ translate: [x + panelWidth / 2, wallHeight - 3.5, 75] });
+            const model = createModelMatrix({ translate: [x + panelWidth / 2, wallHeight - 3.5, HALF_DEPTH] });
             this.models.wallPanels.push({ model, color });
         }
 
         // Dinding Kiri (X = -100)
-        for (let z = -75; z < 75; z += panelWidth) {
+        for (let z = -HALF_DEPTH; z < HALF_DEPTH; z += panelWidth) {
             const color = wallColors[(z / panelWidth) % 2 === 0 ? 0 : 1];
             const model = createModelMatrix({
-                translate: [-100, wallHeight - 3.5, z + panelWidth / 2],
+                translate: [-HALF_WIDTH, wallHeight - 3.5, z + panelWidth / 2],
                 rotate: [{ axis: 'y', angle: Math.PI / 2 }]
             });
             this.models.wallPanels.push({ model, color });
         }
 
         // Dinding Kanan (X = 100)
-        for (let z = -75; z < 75; z += panelWidth) {
+        for (let z = -HALF_DEPTH; z < HALF_DEPTH; z += panelWidth) {
             const color = wallColors[(z / panelWidth) % 2 === 0 ? 0 : 1];
             const model = createModelMatrix({
-                translate: [100, wallHeight - 3.5, z + panelWidth / 2],
+                translate: [HALF_WIDTH, wallHeight - 3.5, z + panelWidth / 2],
                 rotate: [{ axis: 'y', angle: Math.PI / 2 }]
             });
             this.models.wallPanels.push({ model, color });
@@ -114,12 +121,29 @@ export class env extends BaseCharacter {
 
         // 2. GEOMETRI UNTUK TRIBUN
         // Mesh untuk platform (tangga)
-        this.meshes.platform = createMesh(MeshUtils.generateBox, { params: [100, 1, 3], deferBuffer: false });
+        this.meshes.platform = createMesh(MeshUtils.generateBox, { params: [TRIBUNE_WIDTH, 1, 3], deferBuffer: false });
         // Mesh untuk penonton (gaya siluet)
         this.meshes.spectatorBody = createMesh(MeshUtils.generateEllipsoid, { params: [2, 5, 2, 8, 16], deferBuffer: false });
         this.meshes.spectatorHead = createMesh(MeshUtils.generateEllipsoid, { params: [1.4, 1.4, 1.4, 8, 16], deferBuffer: false });
         this.meshes.spectatorArm = createMesh(MeshUtils.generateEllipticalCylinder, { params: [0.2, 0.2, 0.3, 0.3, 3, 32, 1, true], deferBuffer: false }); // Lengan panjang kurus
         this.meshes.spectatorEye = createMesh(MeshUtils.generateEllipsoid, { params: [0.1, 0.3, 0.1, 8, 8], deferBuffer: false }); // Bola kecil untuk mata
+
+        // --- TAMBAHAN PAGAR ---
+        // Mesh untuk pagar. Lebar 100 (sesuai platform), tinggi 5, tebal 0.5
+        this.meshes.fence = createMesh(MeshUtils.generateBox, { params: [TRIBUNE_WIDTH, 8, 0.5], deferBuffer: false });
+
+        const fenceY = 0.5; // Ketinggian Y pagar
+        const fenceOffset = 2.5; // Jarak pagar dari tepi platform pertama
+
+        const posFenceFront = (HALF_DEPTH - standMarginZ) - fenceOffset;
+        const posFenceBack = -(HALF_DEPTH - standMarginZ) + fenceOffset;
+        const posFenceLeft = -(HALF_WIDTH - standMarginX) + fenceOffset;
+        const posFenceRight = (HALF_WIDTH - standMarginX) - fenceOffset;
+        
+        this.models.fenceFront = createModelMatrix({ translate: [0, fenceY, posFenceFront] });
+        this.models.fenceBack = createModelMatrix({ translate: [0, fenceY, posFenceBack] });
+        this.models.fenceLeft = createModelMatrix({ translate: [posFenceLeft, fenceY, 0], rotate: [{ axis: 'y', angle: Math.PI / 2 }] });
+        this.models.fenceRight = createModelMatrix({ translate: [posFenceRight, fenceY, 0], rotate: [{ axis: 'y', angle: Math.PI / 2 }] });
 
         // Array untuk menyimpan model matrix dari semua elemen tribun
         this.models.platforms = [];
@@ -135,8 +159,7 @@ export class env extends BaseCharacter {
         const seatsPerRow = 20;
         const rowHeight = 2.5; // Ketinggian tiap baris
         const rowDepth = 5.0; // Kedalaman tiap baris
-        const spectatorSpacing = 5; // Jarak antar penonton
-
+        const spectatorSpacing = TRIBUNE_WIDTH / (seatsPerRow - 1);
 
         const clothingColors = [
             [0.8, 0.2, 0.2],  // Merah
@@ -161,7 +184,7 @@ export class env extends BaseCharacter {
 
                 // Hitung posisi awal penonton di baris ini
                 const firstSeatPos = vec3.clone(platformPos);
-                vec3.scaleAndAdd(firstSeatPos, firstSeatPos, config.rowDir, -(seatsPerRow - 1) * spectatorSpacing / 2);
+                vec3.scaleAndAdd(firstSeatPos, firstSeatPos, config.rowDir, -(TRIBUNE_WIDTH - spectatorSpacing) / 2);
                 vec3.add(firstSeatPos, firstSeatPos, [0, 5, 0]); // Naik sedikit dari platform
 
                 for (let s = 0; s < seatsPerRow; s++) {
@@ -254,11 +277,10 @@ export class env extends BaseCharacter {
         };
 
         // Buat 4 sisi tribun
-        createAudienceSide({ startPos: [0, -2, -45], depthDir: [0, 0, -1], rowDir: [1, 0, 0], rotation: 0 }); // Belakang
-        createAudienceSide({ startPos: [0, -2, 45], depthDir: [0, 0, 1], rowDir: [-1, 0, 0], rotation: 0 }); // Depan
-        createAudienceSide({ startPos: [-75, -2, 0], depthDir: [-1, 0, 0], rowDir: [0, 0, -1], rotation: Math.PI / 2 }); // Kiri
-        createAudienceSide({ startPos: [75, -2, 0], depthDir: [1, 0, 0], rowDir: [0, 0, 1], rotation: Math.PI / 2 }); // Kanan
-
+        createAudienceSide({ startPos: [0, -2, -(HALF_DEPTH - standMarginZ)], depthDir: [0, 0, -1], rowDir: [1, 0, 0], rotation: 0 }); // Belakang
+        createAudienceSide({ startPos: [0, -2, (HALF_DEPTH - standMarginZ)], depthDir: [0, 0, 1], rowDir: [-1, 0, 0], rotation: 0 }); // Depan
+        createAudienceSide({ startPos: [-(HALF_WIDTH - standMarginX), -2, 0], depthDir: [-1, 0, 0], rowDir: [0, 0, -1], rotation: Math.PI / 2 }); // Kiri
+        createAudienceSide({ startPos: [(HALF_WIDTH - standMarginX), -2, 0], depthDir: [1, 0, 0], rowDir: [0, 0, 1], rotation: Math.PI / 2 }); // Kanan
 
         // 4. ALAS DASAR UNTUK SEMUANYA
         this.meshes.basePlane = createMesh(MeshUtils.generateBox, { params: [200, 0.2, 150], deferBuffer: false });
@@ -275,10 +297,10 @@ export class env extends BaseCharacter {
         // Definisikan 8 titik sudut atap
         const roofPositions = [
             // Sudut bawah (di atas dinding)
-            -100, wallTopY, -75, // 0: Kiri-Belakang-Bawah
-            100, wallTopY, -75, // 1: Kanan-Belakang-Bawah
-            100, wallTopY, 75, // 2: Kanan-Depan-Bawah
-            -100, wallTopY, 75, // 3: Kiri-Depan-Bawah
+            -HALF_WIDTH, wallTopY, -HALF_DEPTH, // 0: Kiri-Belakang-Bawah
+            HALF_WIDTH, wallTopY, -HALF_DEPTH, // 1: Kanan-Belakang-Bawah
+            HALF_WIDTH, wallTopY, HALF_DEPTH, // 2: Kanan-Depan-Bawah
+            -HALF_WIDTH, wallTopY, HALF_DEPTH, // 3: Kiri-Depan-Bawah
 
             // Sudut atas (di puncak)
             -roofPeakWidth / 2, roofPeakY, -roofPeakDepth / 2, // 4: Kiri-Belakang-Atas
@@ -310,7 +332,7 @@ export class env extends BaseCharacter {
 
         // 9. MOTIF STRIPE PUTIH UNTUK ATAP (VERSI SEGMENT MAPPING)
         this.models.roofStripes = [];
-        const stripeOffset = 0.1;
+        const stripeOffset = 0.5;
         const roofPanelWidth = 10;
         const whiteColor = [0.9, 0.9, 0.85];
 
@@ -324,10 +346,11 @@ export class env extends BaseCharacter {
         };
 
         // --- Stripe Sisi Panjang (Belakang & Depan) ---
-        const wallWidth = 200; // Total lebar dinding (dari -100 hingga 100)
-        for (let i = 0; i < 20; i++) {
+        const wallWidth = CIRCUS_WIDTH; // Total lebar dinding (dari -100 hingga 100)
+        const numPanelsX = Math.floor(CIRCUS_WIDTH / roofPanelWidth);
+        for (let i = 0; i < numPanelsX; i++) {
             if (i % 2 === 0) continue; // Hanya buat panel ganjil (putih)
-            const x = -100 + i * roofPanelWidth;
+            const x = -HALF_WIDTH + i * roofPanelWidth;
 
             // === PERBAIKAN LOGIKA DI SINI ===
             // 1. Cari posisi tengah dasar panel di dinding (antara -100 s/d 100)
@@ -357,10 +380,11 @@ export class env extends BaseCharacter {
         }
 
         // --- Stripe Sisi Pendek (Kiri & Kanan) ---
-        const wallDepth = 150; // Total kedalaman dinding (dari -75 hingga 75)
-        for (let i = 0; i < 15; i++) {
+        const wallDepth = CIRCUS_DEPTH; // Total kedalaman dinding (dari -75 hingga 75)
+        const numPanelsZ = Math.floor(CIRCUS_DEPTH / roofPanelWidth);
+        for (let i = 0; i < numPanelsZ; i++) {
             if (i % 2 === 0) continue;
-            const z = -75 + i * roofPanelWidth;
+            const z = -HALF_DEPTH + i * roofPanelWidth;
 
             // Lakukan pemetaan yang sama untuk sumbu Z
             const baseCenter = z + roofPanelWidth / 2;
@@ -388,7 +412,7 @@ export class env extends BaseCharacter {
 
         // 10. MOTIF STRIPE PUTIH UNTUK ATAP BAGIAN DALAM
         this.models.innerRoofStripes = [];
-        const innerStripeOffset = -0.1;
+        const innerStripeOffset = -0.5;
 
         // Helper function tetap sama
         const createInnerStripePanel = (positions, indices) => {
@@ -401,40 +425,38 @@ export class env extends BaseCharacter {
         };
 
         // --- Stripe Sisi Panjang (Belakang & Depan) - BAGIAN DALAM ---
-        for (let i = 0; i < 20; i++) {
+        for (let i = 0; i < numPanelsX; i++) {
             if (i % 2 === 0) continue;
-            const x = -100 + i * roofPanelWidth;
-            const normalizedPos = (x + 100 + roofPanelWidth / 2) / wallWidth;
+            const x = -HALF_WIDTH + i * roofPanelWidth;
+            const normalizedPos = (x + HALF_WIDTH + roofPanelWidth / 2) / wallWidth;
             const peakX = -roofPeakWidth / 2 + normalizedPos * roofPeakWidth;
 
-            // Stripe Belakang Dalam (Luar: [2, 1, 0] -> Dalam: [0, 1, 2])
-            const pos_back = [x, wallTopY, -75, x + roofPanelWidth, wallTopY, -75, peakX, roofPeakY, -roofPeakDepth / 2];
-            const buf_back = createInnerStripePanel(pos_back, [0, 1, 2]); // <<< PERBAIKAN DI SINI
+            const pos_back = [x, wallTopY, -HALF_DEPTH, x + roofPanelWidth, wallTopY, -HALF_DEPTH, peakX, roofPeakY, -roofPeakDepth / 2];
+            const buf_back = createInnerStripePanel(pos_back, [0, 1, 2]); 
             this.models.innerRoofStripes.push({ buffers: buf_back, model: mat4.create(), color: whiteColor });
 
-            // Stripe Depan Dalam (Luar: [0, 1, 2] -> Dalam: [2, 1, 0])
-            const pos_front = [x, wallTopY, 75, x + roofPanelWidth, wallTopY, 75, peakX, roofPeakY, roofPeakDepth / 2];
-            const buf_front = createInnerStripePanel(pos_front, [2, 1, 0]); // <<< PERBAIKAN DI SINI
+            const pos_front = [x, wallTopY, HALF_DEPTH, x + roofPanelWidth, wallTopY, HALF_DEPTH, peakX, roofPeakY, roofPeakDepth / 2];
+            const buf_front = createInnerStripePanel(pos_front, [2, 1, 0]); 
             this.models.innerRoofStripes.push({ buffers: buf_front, model: mat4.create(), color: whiteColor });
         }
 
-        // --- Stripe Sisi Pendek (Kiri & Kanan) - BAGIAN DALAM ---
-        for (let i = 0; i < 15; i++) {
+        for (let i = 0; i < numPanelsZ; i++) {
             if (i % 2 === 0) continue;
-            const z = -75 + i * roofPanelWidth;
-            const normalizedPos = (z + 75 + roofPanelWidth / 2) / wallDepth;
+            const z = -HALF_DEPTH + i * roofPanelWidth;
+            const normalizedPos = (z + HALF_DEPTH + roofPanelWidth / 2) / wallDepth;
             const peakZ = -roofPeakDepth / 2 + normalizedPos * roofPeakDepth;
 
-            // Stripe Kiri Dalam (Luar: [0, 1, 2] -> Dalam: [2, 1, 0])
-            const pos_left = [-100, wallTopY, z, -100, wallTopY, z + roofPanelWidth, -roofPeakWidth / 2, roofPeakY, peakZ];
-            const buf_left = createInnerStripePanel(pos_left, [2, 1, 0]); // <<< PERBAIKAN DI SINI
+            const pos_left = [-HALF_WIDTH, wallTopY, z, -HALF_WIDTH, wallTopY, z + roofPanelWidth, -roofPeakWidth / 2, roofPeakY, peakZ];
+            const buf_left = createInnerStripePanel(pos_left, [2, 1, 0]); 
             this.models.innerRoofStripes.push({ buffers: buf_left, model: mat4.create(), color: whiteColor });
 
-            // Stripe Kanan Dalam (Luar: [2, 1, 0] -> Dalam: [0, 1, 2])
-            const pos_right = [100, wallTopY, z, 100, wallTopY, z + roofPanelWidth, roofPeakWidth / 2, roofPeakY, peakZ];
-            const buf_right = createInnerStripePanel(pos_right, [0, 1, 2]); // <<< PERBAIKAN DI SINI
+            const pos_right = [HALF_WIDTH, wallTopY, z, HALF_WIDTH, wallTopY, z + roofPanelWidth, roofPeakWidth / 2, roofPeakY, peakZ];
+            const buf_right = createInnerStripePanel(pos_right, [0, 1, 2]); 
             this.models.innerRoofStripes.push({ buffers: buf_right, model: mat4.create(), color: whiteColor });
         }
+
+        this.meshes.roofCap = createMesh(MeshUtils.generateBox, { params: [roofPeakWidth, 0.1, roofPeakDepth], deferBuffer: false });
+        this.models.roofCap = createModelMatrix({ translate: [0, roofPeakY, 0] }); // Posisikan tepat di lubang
     }
 
     animate(time) {
@@ -519,7 +541,13 @@ export class env extends BaseCharacter {
         // GAMBAR LAPANGAN HIJAU DI LUAR
         drawObject(this.meshes.grassField.solid.buffers, this.models.grassField, [0.3, 0.6, 0.2], GL.TRIANGLES);
 
-        // ... sisa kode drawObject() Anda
+
+
+        drawObject(this.meshes.fence.solid.buffers, this.models.fenceFront, [0, 0, 0], GL.TRIANGLES);
+        drawObject(this.meshes.fence.solid.buffers, this.models.fenceBack, [0, 0, 0], GL.TRIANGLES);
+        // Menggunakan mesh 'fence' untuk kiri & kanan (yang sudah dirotasi)
+        drawObject(this.meshes.fence.solid.buffers, this.models.fenceLeft, [0, 0, 0], GL.TRIANGLES);
+        drawObject(this.meshes.fence.solid.buffers, this.models.fenceRight, [0, 0, 0], GL.TRIANGLES);
 
 
 
@@ -553,7 +581,7 @@ export class env extends BaseCharacter {
             drawObject(this.meshes.spectatorBody.solid.buffers, spectator.bodyModel, bodyColor, GL.TRIANGLES);
             drawObject(this.meshes.spectatorHead.solid.buffers, spectator.headModel, skinTone, GL.TRIANGLES);
 
-            // TAMBAHKAN INI: Gambar lengan kiri dan kanan
+            //  Gambar lengan kiri dan kanan
             drawObject(this.meshes.spectatorArm.solid.buffers, spectator.leftArmModel, skinTone, GL.TRIANGLES);
             drawObject(this.meshes.spectatorArm.solid.buffers, spectator.rightArmModel, skinTone, GL.TRIANGLES);
 
@@ -561,30 +589,24 @@ export class env extends BaseCharacter {
             drawObject(this.meshes.spectatorEye.solid.buffers, spectator.leftEyeModel, eyeColor, GL.TRIANGLES);
             drawObject(this.meshes.spectatorEye.solid.buffers, spectator.rightEyeModel, eyeColor, GL.TRIANGLES);
         });
-        // ... (setelah kode menggambar penonton)
-
+        
         // --- MENGGAMBAR DINDING SIRKUS ---
         for (const panel of this.models.wallPanels) {
             drawObject(this.meshes.wallPanel.solid.buffers, panel.model, panel.color, GL.TRIANGLES);
         }
 
-        // Letakkan ini di akhir drawObject()
-
+        
         // --- MENGGAMBAR ATAP SIRKUS ---
         drawObject(this.meshes.circusRoof.solid.buffers, this.models.circusRoof, [0.8, 0.15, 0.15], GL.TRIANGLES); // Warna Merah
-        // ... (setelah baris drawObject(this.meshes.circusRoof.solid.buffers, ...))
-
+        
         // --- MENGGAMBAR MOTIF STRIPE ATAP ---
-        for (const stripe of this.models.roofStripes) {
-            drawObject(stripe.buffers, stripe.model, stripe.color, GL.TRIANGLES);
-        }
-
-        // ... (setelah loop for (const stripe of this.models.roofStripes))
+        drawObject(this.meshes.roofCap.solid.buffers, this.models.roofCap, [0.0, 0.0, 1.0], GL.TRIANGLES); // Warna hitam
 
         // --- MENGGAMBAR MOTIF STRIPE ATAP BAGIAN DALAM ---
         for (const stripe of this.models.innerRoofStripes) {
             drawObject(stripe.buffers, stripe.model, stripe.color, GL.TRIANGLES);
         }
+
     }
 }
 
