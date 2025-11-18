@@ -62,16 +62,16 @@ function main() {
     cameraUpdate(); // -------------- update bone localSpecs ---------------- // TODO // Animate HUMAN // human.animate(time) // mime_jr1.animate(time); // mr_rime1.animate(time);
 
     //ANIMATE
-    mime_jr1.animate(time);
-    mr_mime1.animate(time);
-    mr_rime1.animate(time);
+    // mime_jr1.animate(time);
+    // mr_mime1.animate(time);
+    // mr_rime1.animate(time);
 
     environment.animate(time); // Animate here! //.. // ------------------------ Draw Object ------------- // TODO // Draw HUMAN // human.drawObject(); // mime_jr1.drawObject(); // Gambar environment dulu agar di belakang
 
     //DRAW OBJECT
-    mime_jr1.drawObject(); // mr_rime1.drawObject(); // Draw here! //.. // REVIEW --------------- Draw bone ---------------- // mime_jr1.root.drawHelper(); // dibuang jika tidak mau lihat bone // mr_rime1.root.drawHelper(); // dibuang jika tidak mau lihat bone //
-    mr_mime1.drawObject(); // mr_rime1.drawObject(); // Draw here! //.. // REVIEW --------------- Draw bone ---------------- // mime_jr1.root.drawHelper(); // dibuang jika tidak mau lihat bone // mr_rime1.root.drawHelper(); // dibuang jika tidak mau lihat bone //
-    mr_rime1.drawObject(); // mr_rime1.drawObject(); // Draw here! //.. // REVIEW --------------- Draw bone ---------------- // mime_jr1.root.drawHelper(); // dibuang jika tidak mau lihat bone //
+    // mime_jr1.drawObject(); // mr_rime1.drawObject(); // Draw here! //.. // REVIEW --------------- Draw bone ---------------- // mime_jr1.root.drawHelper(); // dibuang jika tidak mau lihat bone // mr_rime1.root.drawHelper(); // dibuang jika tidak mau lihat bone //
+    // mr_mime1.drawObject(); // mr_rime1.drawObject(); // Draw here! //.. // REVIEW --------------- Draw bone ---------------- // mime_jr1.root.drawHelper(); // dibuang jika tidak mau lihat bone // mr_rime1.root.drawHelper(); // dibuang jika tidak mau lihat bone //
+    // mr_rime1.drawObject(); // mr_rime1.drawObject(); // Draw here! //.. // REVIEW --------------- Draw bone ---------------- // mime_jr1.root.drawHelper(); // dibuang jika tidak mau lihat bone //
     environment.drawObject();
 
     //BONE REVIEW
