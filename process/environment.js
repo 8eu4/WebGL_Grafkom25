@@ -9,7 +9,6 @@ import { GL, attribs } from '../main.js'
 // --- Ambil alias glMatrix dari scope global (window) ---
 const vec3 = window.vec3;
 const mat4 = window.mat4;
-// --- BATAS PERBAIKAN ---
 
 export class env extends BaseCharacter {
     constructor() {
@@ -17,30 +16,63 @@ export class env extends BaseCharacter {
         this.meshes = {};
         this.models = {};
 
+        // === DEFINISI WARNA ===
+        const clothingColors = [
+            [0.8, 0.2, 0.2], [0.2, 0.3, 0.8], [0.1, 0.5, 0.2], [0.8, 0.8, 0.1], [0.5, 0.2, 0.8],
+            [0.9, 0.5, 0.1], [0.2, 0.8, 0.8], [0.8, 0.4, 0.7], [0.3, 0.3, 0.3], [0.9, 0.9, 0.9]
+        ];
+
         const CIRCUS_WIDTH = 300; 
         const CIRCUS_DEPTH = 200; 
 
         const HALF_WIDTH = CIRCUS_WIDTH / 2;
         const HALF_DEPTH = CIRCUS_DEPTH / 2;
 
-        // Dimensi Tribun untuk sisi Panjang (X) dan Pendek (Z)
-        const TRIBUNE_DIM_X = CIRCUS_WIDTH * 0.8; // 240
-        const TRIBUNE_DIM_Z = CIRCUS_DEPTH * 0.8; // 160
+        // Dimensi Tribun
+        const TRIBUNE_DIM_X = CIRCUS_WIDTH * 0.8; 
+        const TRIBUNE_DIM_Z = CIRCUS_DEPTH * 0.8; 
 
         const standMarginX = (CIRCUS_WIDTH - TRIBUNE_DIM_X) / 2;
         const standMarginZ = (CIRCUS_DEPTH - TRIBUNE_DIM_Z) / 2;
 
-        // 1. GEOMETRI DASAR PANGGUNG
-        this.meshes.stageFloor = createMesh(MeshUtils.generateBox, { params: [60, 0.5, 25], deferBuffer: false });
-        this.models.stageFloor = createModelMatrix({ translate: [0, -3, 0] });
+        // === 1. PANGGUNG LINGKARAN ===
+        const stageRadius = 50; 
+        const stageHeight = 4.0; 
+        
+        // A. Mesh Panggung Utama (Bawah)
+        this.meshes.stageFloor = createMesh(MeshUtils.generateEllipticalCylinder, { 
+            params: [stageRadius, stageRadius, stageRadius, stageRadius, stageHeight, 64], 
+            deferBuffer: false 
+        });
+        // Posisi Center Y diturunkan dikit (-1.5 -> -1.55)
+        // Agar Top Y turun dari 0.5 -> 0.45 (di bawah Trim Emas)
+        this.models.stageFloor = createModelMatrix({ translate: [0, -1.55, 0] });
 
-        this.meshes.woodPlank = createMesh(MeshUtils.generateBox, { params: [60, 0.2, 0.9], deferBuffer: false });
-        this.models.planks = [];
-        const plankCount = 25;
-        for (let i = 0; i < plankCount; i++) {
-            const zPos = -12 + i * 1.0;
-            this.models.planks.push(createModelMatrix({ translate: [0, -2.6, zPos] }));
-        }
+        // B. Mesh Layer Atas (Putih & Lebih Kecil)
+        const topLayerRadius = stageRadius - 2.0; 
+        const topLayerHeight = 0.2; 
+        this.meshes.stageWhiteTop = createMesh(MeshUtils.generateEllipticalCylinder, {
+            params: [topLayerRadius, topLayerRadius, topLayerRadius, topLayerRadius, topLayerHeight, 64],
+            deferBuffer: false
+        });
+        // Posisi Center Y juga diturunkan (0.6 -> 0.55) agar tetap nempel di panggung merah
+        this.models.stageWhiteTop = createModelMatrix({ translate: [0, 0.55, 0] });
+
+        // C. Mesh Dekorasi Trim (Cincin Emas Atas & Bawah)
+        const trimRadius = stageRadius + 0.5; 
+        const trimHeight = 0.5;
+        this.meshes.stageTrim = createMesh(MeshUtils.generateEllipticalCylinder, {
+            params: [trimRadius, trimRadius, trimRadius, trimRadius, trimHeight, 64],
+            deferBuffer: false
+        });
+        
+        // Posisi Trim Atas (di bibir panggung utama) - TETAP di 0.25 (Top=0.5)
+        this.models.stageTrimTop = createModelMatrix({ translate: [0, 0.25, 0] });
+        // Posisi Trim Bawah (di dasar panggung)
+        this.models.stageTrimBottom = createModelMatrix({ translate: [0, -3.25, 0] });
+
+        // Hapus papan kayu lama
+        this.models.planks = []; 
 
         // 7. DINDING LANGIT
         this.meshes.skyWall = createMesh(MeshUtils.generateBox, { params: [500, 200, 1], deferBuffer: false });
@@ -68,25 +100,21 @@ export class env extends BaseCharacter {
         const wallHeight = 28.5; 
         const wallColors = [[0.8, 0.15, 0.15], [0.9, 0.9, 0.85]];
         const panelWidth = 5;
-        // const doorStart = HALF_WIDTH - 40; // Dihapus agar dinding tertutup
-        // const doorEnd = HALF_WIDTH - 25;   // Dihapus agar dinding tertutup
 
-        // Dinding Belakang 
+        // Dinding Belakang & Depan
         for (let x = -HALF_WIDTH; x < HALF_WIDTH; x += panelWidth) {
             const color = wallColors[Math.abs(Math.floor(x / panelWidth)) % 2];
             this.models.wallPanels.push({ model: createModelMatrix({ translate: [x + panelWidth / 2, wallHeight - 3.5, -HALF_DEPTH] }), color });
         }
-        // Dinding Depan (Full tertutup)
         for (let x = -HALF_WIDTH; x < HALF_WIDTH; x += panelWidth) {
             const color = wallColors[Math.abs(Math.floor(x / panelWidth)) % 2];
             this.models.wallPanels.push({ model: createModelMatrix({ translate: [x + panelWidth / 2, wallHeight - 3.5, HALF_DEPTH] }), color });
         }
-        // Dinding Kiri
+        // Dinding Kiri & Kanan
         for (let z = -HALF_DEPTH; z < HALF_DEPTH; z += panelWidth) {
             const color = wallColors[Math.abs(Math.floor(z / panelWidth)) % 2];
             this.models.wallPanels.push({ model: createModelMatrix({ translate: [-HALF_WIDTH, wallHeight - 3.5, z + panelWidth / 2], rotate: [{ axis: 'y', angle: Math.PI / 2 }] }), color });
         }
-        // Dinding Kanan
         for (let z = -HALF_DEPTH; z < HALF_DEPTH; z += panelWidth) {
             const color = wallColors[Math.abs(Math.floor(z / panelWidth)) % 2];
             this.models.wallPanels.push({ model: createModelMatrix({ translate: [HALF_WIDTH, wallHeight - 3.5, z + panelWidth / 2], rotate: [{ axis: 'y', angle: Math.PI / 2 }] }), color });
@@ -97,40 +125,86 @@ export class env extends BaseCharacter {
         this.models.spotlightPool2 = createModelMatrix({ translate: [20, -2.7, 0] });
         this.models.spotlightPool3 = createModelMatrix({ translate: [-20, -2.7, 0] });
 
-        // --- TRIBUN (DIPISAH UKURANNYA) ---
-        // Platform Panjang (Depan/Belakang)
+        // --- TRIBUN ---
         this.meshes.platformLong = createMesh(MeshUtils.generateBox, { params: [TRIBUNE_DIM_X, 1, 3], deferBuffer: false });
-        // Platform Pendek (Kiri/Kanan)
         this.meshes.platformShort = createMesh(MeshUtils.generateBox, { params: [TRIBUNE_DIM_Z, 1, 3], deferBuffer: false });
 
-        // === 10. FONDASI TRIBUN (TABUNG KE BAWAH) ===
-        // Cylinder radius 0.8, tinggi dasar 1.0 (nanti discale)
+        // === FONDASI TRIBUN ===
         this.meshes.foundation = createMesh(MeshUtils.generateEllipticalCylinder, { 
             params: [0.8, 0.8, 0.8, 0.8, 1.0, 16], 
             deferBuffer: false 
         });
         this.models.foundations = [];
 
+        // === MESH PENONTON & PROPERTI ===
         this.meshes.spectatorBody = createMesh(MeshUtils.generateEllipsoid, { params: [2, 5, 2, 8, 16], deferBuffer: false });
         this.meshes.spectatorHead = createMesh(MeshUtils.generateEllipsoid, { params: [1.4, 1.4, 1.4, 8, 16], deferBuffer: false });
         this.meshes.spectatorArm = createMesh(MeshUtils.generateEllipticalCylinder, { params: [0.2, 0.2, 0.3, 0.3, 3, 32, 1, true], deferBuffer: false });
         this.meshes.spectatorEye = createMesh(MeshUtils.generateEllipsoid, { params: [0.1, 0.3, 0.1, 8, 8], deferBuffer: false });
+        this.meshes.propCup = createMesh(MeshUtils.generateEllipticalCylinder, { params: [0.4, 0.4, 0.3, 0.3, 1.2, 12], deferBuffer: false });
 
-        // Pagar (Fence) juga dipisah ukurannya
-        this.meshes.fenceLong = createMesh(MeshUtils.generateBox, { params: [TRIBUNE_DIM_X, 8, 0.5], deferBuffer: false });
-        this.meshes.fenceShort = createMesh(MeshUtils.generateBox, { params: [TRIBUNE_DIM_Z, 8, 0.5], deferBuffer: false });
-
+        // === DEKORASI PAGAR ===
         const fenceY = 0.5; 
-        const fenceOffset = 2.5; 
+        const fenceOffset = 15.0; // Jarak pagar dari tribun
+        
         const posFenceFront = (HALF_DEPTH - standMarginZ) - fenceOffset;
         const posFenceBack = -(HALF_DEPTH - standMarginZ) + fenceOffset;
         const posFenceLeft = -(HALF_WIDTH - standMarginX) + fenceOffset;
         const posFenceRight = (HALF_WIDTH - standMarginX) - fenceOffset;
+
+        // Gap Negatif (Overlap) agar sudut tertutup
+        const fenceGap = -2.0; 
+        const fenceLengthLong = 2 * Math.abs(posFenceRight) - fenceGap;
+        const fenceLengthShort = 2 * Math.abs(posFenceFront) - fenceGap;
+
+        this.meshes.fenceLong = createMesh(MeshUtils.generateBox, { params: [fenceLengthLong, 8, 0.5], deferBuffer: false });
+        this.meshes.fenceShort = createMesh(MeshUtils.generateBox, { params: [fenceLengthShort, 8, 0.5], deferBuffer: false });
+        
+        // Mesh Bendera
+        this.meshes.flag = createMesh(MeshUtils.generateCone, { params: [0.8, 1.5, 4], deferBuffer: false }); 
+        this.models.flags = [];
         
         this.models.fenceFront = createModelMatrix({ translate: [0, fenceY, posFenceFront] });
         this.models.fenceBack = createModelMatrix({ translate: [0, fenceY, posFenceBack] });
         this.models.fenceLeft = createModelMatrix({ translate: [posFenceLeft, fenceY, 0], rotate: [{ axis: 'y', angle: Math.PI / 2 }] });
         this.models.fenceRight = createModelMatrix({ translate: [posFenceRight, fenceY, 0], rotate: [{ axis: 'y', angle: Math.PI / 2 }] });
+
+        // Generate Bendera di Pagar
+        const createFlagsOnFence = (startX, startZ, length, isRotated) => {
+            const flagSpacing = 2.0;
+            const numFlags = Math.floor(length / flagSpacing);
+            const flagY = fenceY + 4; 
+            
+            for (let i = 0; i < numFlags; i++) {
+                const offset = -length/2 + i * flagSpacing;
+                let pos, rotY;
+                
+                if (isRotated) { 
+                    pos = [startX, flagY, startZ + offset];
+                    rotY = (startX > 0) ? -Math.PI/2 : Math.PI/2; 
+                } else { 
+                    pos = [startX + offset, flagY, startZ];
+                    rotY = (startZ > 0) ? 0 : Math.PI;
+                }
+
+                this.models.flags.push({
+                    model: createModelMatrix({
+                        translate: pos,
+                        rotate: [
+                            { axis: 'y', angle: rotY },
+                            { axis: 'z', angle: Math.PI } 
+                        ]
+                    }),
+                    color: clothingColors[i % clothingColors.length] 
+                });
+            }
+        };
+
+        createFlagsOnFence(0, posFenceFront, fenceLengthLong, false);
+        createFlagsOnFence(0, posFenceBack, fenceLengthLong, false);
+        createFlagsOnFence(posFenceLeft, 0, fenceLengthShort, true);
+        createFlagsOnFence(posFenceRight, 0, fenceLengthShort, true);
+
 
         this.models.platformsLong = [];
         this.models.platformsShort = [];
@@ -138,78 +212,69 @@ export class env extends BaseCharacter {
         this.models.spectatorHeads = [];
         this.initialSpectatorData = []; 
         this.models.spectators = []; 
+        this.models.props = []; 
 
         const rows = 4;
         const rowHeight = 2.5;
         const rowDepth = 5.0;
-        const clothingColors = [[0.8, 0.2, 0.2], [0.2, 0.3, 0.8], [0.1, 0.5, 0.2], [0.8, 0.8, 0.1], [0.5, 0.2, 0.8]];
 
         // Fungsi Pembantu Generik
         const createAudienceSide = (config) => {
-            // Tentukan lebar area duduk agar ada jarak (padding) dari pojok
-            // Padding total 40 (20 kiri, 20 kanan)
             const seatingWidth = config.totalWidth - 40; 
             const spectatorSpacing = seatingWidth / (config.seatsCount - 1);
-            
-            // Level tanah untuk dasar fondasi
             const groundY = -3.5; 
 
             for (let r = 0; r < rows; r++) {
-                // Posisi Platform
                 const platformPos = vec3.clone(config.startPos);
                 vec3.scaleAndAdd(platformPos, platformPos, config.depthDir, r * rowDepth);
                 vec3.scaleAndAdd(platformPos, platformPos, [0, 1, 0], r * rowHeight);
                 
-                // Simpan model matrix ke array yang sesuai (Long/Short)
                 if (config.type === 'long') {
                     this.models.platformsLong.push(createModelMatrix({ translate: platformPos, rotate: [{ axis: 'y', angle: config.rotation }] }));
                 } else {
                     this.models.platformsShort.push(createModelMatrix({ translate: platformPos, rotate: [{ axis: 'y', angle: config.rotation }] }));
                 }
 
-                // === GENERATE FONDASI TABUNG KE BAWAH ===
-                // Kita beri fondasi setiap ~25 unit
+                // Generate Fondasi
                 const foundationSpacing = 25;
                 const numFoundations = Math.floor(config.totalWidth / foundationSpacing);
-                // Pastikan minimal ada di ujung kiri dan kanan
                 const foundationCount = Math.max(2, numFoundations);
-                
                 const currentPlatformY = platformPos[1];
                 const foundationHeight = currentPlatformY - groundY;
 
-                // Hanya buat jika tingginya cukup signifikan
                 if (foundationHeight > 0.5) {
                     for (let k = 0; k <= foundationCount; k++) {
-                        const t = k / foundationCount; // 0.0 s/d 1.0
-                        // Offset dari tengah (-width/2 s/d +width/2) dengan sedikit margin
+                        const t = k / foundationCount;
                         const offset = -(config.totalWidth / 2) + 2 + t * (config.totalWidth - 4);
-                        
                         const fPos = vec3.clone(platformPos);
                         vec3.scaleAndAdd(fPos, fPos, config.rowDir, offset);
-                        
-                        // Posisi Y fondasi harus di tengah-tengah antara tanah dan platform
                         fPos[1] = groundY + foundationHeight / 2;
-
                         this.models.foundations.push(createModelMatrix({
                             translate: fPos,
-                            scale: [1, foundationHeight, 1] // Scale Y agar pas dari tanah ke platform
+                            scale: [1, foundationHeight, 1]
                         }));
                     }
                 }
 
-                // Posisi Kursi Pertama (Centered)
                 const firstSeatPos = vec3.clone(platformPos);
-                // Mundur setengah dari lebar area duduk agar posisi (0,0) platform menjadi tengah barisan
                 vec3.scaleAndAdd(firstSeatPos, firstSeatPos, config.rowDir, -seatingWidth / 2);
                 vec3.add(firstSeatPos, firstSeatPos, [0, 5, 0]);
 
                 for (let s = 0; s < config.seatsCount; s++) {
+                    const scale = 0.7 + Math.random() * 0.4; 
+                    const yAdjust = 5 * (scale - 1); 
+
                     const bodyPos = vec3.clone(firstSeatPos);
                     vec3.scaleAndAdd(bodyPos, bodyPos, config.rowDir, s * spectatorSpacing);
-                    
-                    const headPos = vec3.clone(bodyPos); vec3.add(headPos, headPos, [0, 5.5, 0]);
+                    bodyPos[1] += yAdjust; 
+
+                    const headPos = vec3.clone(bodyPos); 
+                    vec3.add(headPos, headPos, [0, 5.5 * scale, 0]); 
+
                     let armOffsetX, armOffsetZ, rotationAxis;
-                    const armY = 4; const armDist = 1.9; const armDistr = -1.9;
+                    const armY = 4 * scale; 
+                    const armDist = 1.9 * scale; 
+                    const armDistr = -1.9 * scale;
                     
                     if (config.rotation === 0) { armOffsetX = armDist; armOffsetZ = 0; rotationAxis = 'z'; } 
                     else { armOffsetX = 0; armOffsetZ = armDistr; rotationAxis = 'x'; }
@@ -217,9 +282,13 @@ export class env extends BaseCharacter {
                     const leftArmPos = vec3.clone(bodyPos); vec3.add(leftArmPos, leftArmPos, [-armOffsetX, armY, -armOffsetZ]);
                     const rightArmPos = vec3.clone(bodyPos); vec3.add(rightArmPos, rightArmPos, [armOffsetX, armY, armOffsetZ]);
                     
-                    let leftEyePos, rightEyePos; const eyeYOffset = 0.2; const eyeForwardDist = 1.3; const eyeSpacing = 0.5;
+                    let leftEyePos, rightEyePos; 
+                    const eyeYOffset = 0.2 * scale; 
+                    const eyeForwardDist = 1.3 * scale; 
+                    const eyeSpacing = 0.5 * scale;
+
                     if (config.rotation === 0) { 
-                        let actualEyeForwardDist = (config.startPos[2] < 0) ? 1.3 : -1.3;
+                        let actualEyeForwardDist = (config.startPos[2] < 0) ? eyeForwardDist : -eyeForwardDist;
                         leftEyePos = vec3.add(vec3.create(), headPos, [-eyeSpacing, eyeYOffset, actualEyeForwardDist]);
                         rightEyePos = vec3.add(vec3.create(), headPos, [eyeSpacing, eyeYOffset, actualEyeForwardDist]);
                     } else { 
@@ -228,58 +297,35 @@ export class env extends BaseCharacter {
                         rightEyePos = vec3.add(vec3.create(), headPos, [eyeForwardDist * faceDirection, eyeYOffset, eyeSpacing]);
                     }
                     
-                    this.initialSpectatorData.push({ body: vec3.clone(bodyPos), head: vec3.clone(headPos), leftArm: vec3.clone(leftArmPos), rightArm: vec3.clone(rightArmPos), leftEye: vec3.clone(leftEyePos), rightEye: vec3.clone(rightEyePos), row: r, seat: s, rotation: config.rotation });
+                    this.initialSpectatorData.push({ body: vec3.clone(bodyPos), head: vec3.clone(headPos), leftArm: vec3.clone(leftArmPos), rightArm: vec3.clone(rightArmPos), leftEye: vec3.clone(leftEyePos), rightEye: vec3.clone(rightEyePos), row: r, seat: s, rotation: config.rotation, scale: scale });
                     const randomColor = clothingColors[Math.floor(Math.random() * clothingColors.length)];
-                    this.models.spectators.push({ bodyModel: createModelMatrix({ translate: bodyPos }), headModel: createModelMatrix({ translate: headPos }), leftArmModel: createModelMatrix({}), rightArmModel: createModelMatrix({}), leftEyeModel: createModelMatrix({ translate: leftEyePos }), rightEyeModel: createModelMatrix({ translate: rightEyePos }), color: randomColor });
+                    
+                    const scaleVec = [scale, scale, scale];
+                    
+                    this.models.spectators.push({ 
+                        bodyModel: createModelMatrix({ translate: bodyPos, scale: scaleVec }), 
+                        headModel: createModelMatrix({ translate: headPos, scale: scaleVec }), 
+                        leftArmModel: createModelMatrix({ scale: scaleVec }), 
+                        rightArmModel: createModelMatrix({ scale: scaleVec }), 
+                        leftEyeModel: createModelMatrix({ translate: leftEyePos, scale: scaleVec }), 
+                        rightEyeModel: createModelMatrix({ translate: rightEyePos, scale: scaleVec }), 
+                        color: randomColor 
+                    });
+
+                    if (Math.random() > 0.7) {
+                        this.models.props.push({
+                            parentIndex: this.models.spectators.length - 1, 
+                            color: (Math.random() > 0.5) ? [1, 1, 1] : [0.8, 0.2, 0.1] 
+                        });
+                    }
                 }
             }
         };
 
-        // --- Buat 4 Sisi Tribun dengan Parameter Berbeda ---
-        
-        // 1. Belakang (Sisi Panjang) - 20 Kursi
-        createAudienceSide({ 
-            type: 'long',
-            totalWidth: TRIBUNE_DIM_X,
-            seatsCount: 20,
-            startPos: [0, -2, -(HALF_DEPTH - standMarginZ)], 
-            depthDir: [0, 0, -1], 
-            rowDir: [1, 0, 0], 
-            rotation: 0 
-        }); 
-        
-        // 2. Depan (Sisi Panjang) - 20 Kursi
-        createAudienceSide({ 
-            type: 'long',
-            totalWidth: TRIBUNE_DIM_X,
-            seatsCount: 20,
-            startPos: [0, -2, (HALF_DEPTH - standMarginZ)], 
-            depthDir: [0, 0, 1], 
-            rowDir: [-1, 0, 0], 
-            rotation: 0 
-        }); 
-        
-        // 3. Kiri (Sisi Pendek) - 12 Kursi (dikurangi biar ga nabrak)
-        createAudienceSide({ 
-            type: 'short',
-            totalWidth: TRIBUNE_DIM_Z,
-            seatsCount: 12,
-            startPos: [-(HALF_WIDTH - standMarginX), -2, 0], 
-            depthDir: [-1, 0, 0], 
-            rowDir: [0, 0, -1], 
-            rotation: Math.PI / 2 
-        }); 
-        
-        // 4. Kanan (Sisi Pendek) - 12 Kursi
-        createAudienceSide({ 
-            type: 'short',
-            totalWidth: TRIBUNE_DIM_Z,
-            seatsCount: 12,
-            startPos: [(HALF_WIDTH - standMarginX), -2, 0], 
-            depthDir: [1, 0, 0], 
-            rowDir: [0, 0, 1], 
-            rotation: Math.PI / 2 
-        }); 
+        createAudienceSide({ type: 'long', totalWidth: TRIBUNE_DIM_X, seatsCount: 20, startPos: [0, -2, -(HALF_DEPTH - standMarginZ)], depthDir: [0, 0, -1], rowDir: [1, 0, 0], rotation: 0 }); 
+        createAudienceSide({ type: 'long', totalWidth: TRIBUNE_DIM_X, seatsCount: 20, startPos: [0, -2, (HALF_DEPTH - standMarginZ)], depthDir: [0, 0, 1], rowDir: [-1, 0, 0], rotation: 0 }); 
+        createAudienceSide({ type: 'short', totalWidth: TRIBUNE_DIM_Z, seatsCount: 12, startPos: [-(HALF_WIDTH - standMarginX), -2, 0], depthDir: [-1, 0, 0], rowDir: [0, 0, -1], rotation: Math.PI / 2 }); 
+        createAudienceSide({ type: 'short', totalWidth: TRIBUNE_DIM_Z, seatsCount: 12, startPos: [(HALF_WIDTH - standMarginX), -2, 0], depthDir: [1, 0, 0], rowDir: [0, 0, 1], rotation: Math.PI / 2 }); 
 
         this.models.basePlane = createModelMatrix({ translate: [0, -3.5, 0] }); 
 
@@ -326,7 +372,7 @@ export class env extends BaseCharacter {
         // --- 9. RANGKA ATAP (FONDASI) ---
         // =======================================================================
         
-        // A. TIANG VERTIKAL (DI UJUNG-UJUNG)
+        // A. TIANG VERTIKAL
         const beamRadius = 3.0; 
         this.meshes.roofBeam = createMesh(MeshUtils.generateEllipticalCylinder, { 
             params: [beamRadius, beamRadius, beamRadius, beamRadius, 1.0, 16], 
@@ -340,7 +386,6 @@ export class env extends BaseCharacter {
         const beamCenterY = (beamEndY + beamStartY) / 2;
         const beamScale = [1, beamHeight, 1]; 
         
-        // 4 Sudut
         const corners = [
             [-HALF_WIDTH, beamCenterY, -HALF_DEPTH], [ HALF_WIDTH, beamCenterY, -HALF_DEPTH],
             [ HALF_WIDTH, beamCenterY,  HALF_DEPTH], [-HALF_WIDTH, beamCenterY,  HALF_DEPTH]
@@ -350,7 +395,7 @@ export class env extends BaseCharacter {
             this.models.roofBeams.push(createModelMatrix({ translate: pos, scale: beamScale }));
         }
 
-        // B. BALOK ATAS (TOP FRAME) - Tiang tengah yang "diputar" jadi horizontal
+        // B. BALOK ATAS
         const topFrameRadius = 2.0;
         this.meshes.topFrameBeam = createMesh(MeshUtils.generateEllipticalCylinder, { 
             params: [topFrameRadius, topFrameRadius, topFrameRadius, topFrameRadius, 1.0, 16], 
@@ -358,35 +403,11 @@ export class env extends BaseCharacter {
         });
         this.models.topFrameBeams = [];
 
-        // 1. Balok Belakang (Sepanjang X) - Rotasi sumbu Z
-        this.models.topFrameBeams.push(createModelMatrix({
-            translate: [0, beamEndY, -HALF_DEPTH],
-            rotate: [{ axis: 'z', angle: Math.PI / 2 }],
-            scale: [1, CIRCUS_WIDTH, 1]
-        }));
+        this.models.topFrameBeams.push(createModelMatrix({ translate: [0, beamEndY, -HALF_DEPTH], rotate: [{ axis: 'z', angle: Math.PI / 2 }], scale: [1, CIRCUS_WIDTH, 1] }));
+        this.models.topFrameBeams.push(createModelMatrix({ translate: [0, beamEndY, HALF_DEPTH], rotate: [{ axis: 'z', angle: Math.PI / 2 }], scale: [1, CIRCUS_WIDTH, 1] }));
+        this.models.topFrameBeams.push(createModelMatrix({ translate: [-HALF_WIDTH, beamEndY, 0], rotate: [{ axis: 'x', angle: Math.PI / 2 }], scale: [1, CIRCUS_DEPTH, 1] }));
+        this.models.topFrameBeams.push(createModelMatrix({ translate: [HALF_WIDTH, beamEndY, 0], rotate: [{ axis: 'x', angle: Math.PI / 2 }], scale: [1, CIRCUS_DEPTH, 1] }));
 
-        // 2. Balok Depan (Sepanjang X) - Rotasi sumbu Z
-        this.models.topFrameBeams.push(createModelMatrix({
-            translate: [0, beamEndY, HALF_DEPTH],
-            rotate: [{ axis: 'z', angle: Math.PI / 2 }],
-            scale: [1, CIRCUS_WIDTH, 1]
-        }));
-
-        // 3. Balok Kiri (Sepanjang Z) - Rotasi sumbu X (Sesuai Request)
-        this.models.topFrameBeams.push(createModelMatrix({
-            translate: [-HALF_WIDTH, beamEndY, 0],
-            rotate: [{ axis: 'x', angle: Math.PI / 2 }],
-            scale: [1, CIRCUS_DEPTH, 1]
-        }));
-
-        // 4. Balok Kanan (Sepanjang Z) - Rotasi sumbu X (Sesuai Request)
-        this.models.topFrameBeams.push(createModelMatrix({
-            translate: [HALF_WIDTH, beamEndY, 0],
-            rotate: [{ axis: 'x', angle: Math.PI / 2 }],
-            scale: [1, CIRCUS_DEPTH, 1]
-        }));
-
-        // C. RANGKA DIAGONAL VERTIKAL (WALL CROSS BEAMS)
         this.models.wallCrossBeams = []; 
     }
 
@@ -409,15 +430,17 @@ export class env extends BaseCharacter {
             const newRightEyePos = vec3.clone(initialData.rightEye); newRightEyePos[1] += yOffset;
 
             const rotationAxis = initialData.rotation === 0 ? 'z' : 'x';
-            const armAngle = Math.PI / 3.5; // ~50 degrees for more active movement
+            const armAngle = Math.PI / 3.5; 
+
+            const scaleVec = [initialData.scale, initialData.scale, initialData.scale];
 
             this.models.spectators[i] = {
-                bodyModel: createModelMatrix({ translate: newBodyPos }),
-                headModel: createModelMatrix({ translate: newHeadPos }),
-                leftArmModel: createModelMatrix({ translate: newLeftArmPos, rotate: [{ axis: rotationAxis, angle: armAngle }] }),
-                rightArmModel: createModelMatrix({ translate: newRightArmPos, rotate: [{ axis: rotationAxis, angle: -armAngle }] }),
-                leftEyeModel: createModelMatrix({ translate: newLeftEyePos }),     
-                rightEyeModel: createModelMatrix({ translate: newRightEyePos }),   
+                bodyModel: createModelMatrix({ translate: newBodyPos, scale: scaleVec }),
+                headModel: createModelMatrix({ translate: newHeadPos, scale: scaleVec }),
+                leftArmModel: createModelMatrix({ translate: newLeftArmPos, rotate: [{ axis: rotationAxis, angle: armAngle }], scale: scaleVec }),
+                rightArmModel: createModelMatrix({ translate: newRightArmPos, rotate: [{ axis: rotationAxis, angle: -armAngle }], scale: scaleVec }),
+                leftEyeModel: createModelMatrix({ translate: newLeftEyePos, scale: scaleVec }),     
+                rightEyeModel: createModelMatrix({ translate: newRightEyePos, scale: scaleVec }),   
                 color: this.models.spectators[i].color
             };
         });
@@ -436,34 +459,40 @@ export class env extends BaseCharacter {
 
         drawObject(this.meshes.grassField.solid.buffers, this.models.grassField, [0.3, 0.6, 0.2], GL.TRIANGLES);
 
-        // Gambar Pagar yang Sudah Disesuaikan
         drawObject(this.meshes.fenceLong.solid.buffers, this.models.fenceFront, [0, 0, 0], GL.TRIANGLES);
         drawObject(this.meshes.fenceLong.solid.buffers, this.models.fenceBack, [0, 0, 0], GL.TRIANGLES);
         drawObject(this.meshes.fenceShort.solid.buffers, this.models.fenceLeft, [0, 0, 0], GL.TRIANGLES);
         drawObject(this.meshes.fenceShort.solid.buffers, this.models.fenceRight, [0, 0, 0], GL.TRIANGLES);
 
-        drawObject(this.meshes.basePlane.solid.buffers, this.models.basePlane, [0.878, 0.686, 0.624], GL.TRIANGLES);   
-
-        drawObject(this.meshes.stageFloor.solid.buffers, this.models.stageFloor, [0.2, 0.2, 0.25], GL.TRIANGLES);
-
-        for (const plankModel of this.models.planks) {
-            drawObject(this.meshes.woodPlank.solid.buffers, plankModel, [0.4, 0.25, 0.15], GL.TRIANGLES);
+        // Gambar Bendera
+        for (const flag of this.models.flags) {
+            drawObject(this.meshes.flag.solid.buffers, flag.model, flag.color, GL.TRIANGLES);
         }
+
+        drawObject(this.meshes.basePlane.solid.buffers, this.models.basePlane, [0.878, 0.686, 0.624], GL.TRIANGLES);   
+        
+        // 1. Gambar Panggung Utama (Bawah) - MERAH MARUN
+        drawObject(this.meshes.stageFloor.solid.buffers, this.models.stageFloor, [0.6, 0.1, 0.2], GL.TRIANGLES);
+        
+        // 2. Gambar Layer Atas (Top) - PUTIH
+        drawObject(this.meshes.stageWhiteTop.solid.buffers, this.models.stageWhiteTop, [0.95, 0.95, 0.95], GL.TRIANGLES);
+
+        // 3. Gambar Trim Emas
+        const goldColor = [0.85, 0.75, 0.3];
+        drawObject(this.meshes.stageTrim.solid.buffers, this.models.stageTrimTop, goldColor, GL.TRIANGLES);
+        drawObject(this.meshes.stageTrim.solid.buffers, this.models.stageTrimBottom, goldColor, GL.TRIANGLES);
 
         drawObject(this.meshes.spotlightPool.solid.buffers, this.models.spotlightPool1, [0.8, 0.8, 0.6], GL.TRIANGLES);
         drawObject(this.meshes.spotlightPool.solid.buffers, this.models.spotlightPool2, [0.8, 0.8, 0.6], GL.TRIANGLES);
         drawObject(this.meshes.spotlightPool.solid.buffers, this.models.spotlightPool3, [0.8, 0.8, 0.6], GL.TRIANGLES);
 
-        // Gambar Platform Panjang
         for (const platformModel of this.models.platformsLong) {
             drawObject(this.meshes.platformLong.solid.buffers, platformModel, [0.3, 0.3, 0.35], GL.TRIANGLES);
         }
-        // Gambar Platform Pendek
         for (const platformModel of this.models.platformsShort) {
             drawObject(this.meshes.platformShort.solid.buffers, platformModel, [0.3, 0.3, 0.35], GL.TRIANGLES);
         }
 
-        // Gambar Fondasi
         for (const foundationModel of this.models.foundations) {
             drawObject(this.meshes.foundation.solid.buffers, foundationModel, [0.25, 0.25, 0.3], GL.TRIANGLES);
         }
@@ -479,6 +508,12 @@ export class env extends BaseCharacter {
             drawObject(this.meshes.spectatorEye.solid.buffers, spectator.leftEyeModel, eyeColor, GL.TRIANGLES);
             drawObject(this.meshes.spectatorEye.solid.buffers, spectator.rightEyeModel, eyeColor, GL.TRIANGLES);
         });
+
+        // Gambar Properti
+        for (const prop of this.models.props) {
+            const parentArmModel = this.models.spectators[prop.parentIndex].rightArmModel;
+            drawObject(this.meshes.propCup.solid.buffers, parentArmModel, prop.color, GL.TRIANGLES);
+        }
         
         for (const panel of this.models.wallPanels) {
             drawObject(this.meshes.wallPanel.solid.buffers, panel.model, panel.color, GL.TRIANGLES);
