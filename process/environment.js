@@ -35,7 +35,7 @@ export class env extends BaseCharacter {
         const standMarginX = (CIRCUS_WIDTH - TRIBUNE_DIM_X) / 2;
         const standMarginZ = (CIRCUS_DEPTH - TRIBUNE_DIM_Z) / 2;
 
-        // === 1. PANGGUNG LINGKARAN ===
+        // === 1. PANGGUNG LINGKARAN (PUTIH BERSIH) ===
         const stageRadius = 50; 
         const stageHeight = 4.0; 
         
@@ -44,8 +44,6 @@ export class env extends BaseCharacter {
             params: [stageRadius, stageRadius, stageRadius, stageRadius, stageHeight, 64], 
             deferBuffer: false 
         });
-        // Posisi Center Y diturunkan dikit (-1.5 -> -1.55)
-        // Agar Top Y turun dari 0.5 -> 0.45 (di bawah Trim Emas)
         this.models.stageFloor = createModelMatrix({ translate: [0, -1.55, 0] });
 
         // B. Mesh Layer Atas (Putih & Lebih Kecil)
@@ -55,20 +53,16 @@ export class env extends BaseCharacter {
             params: [topLayerRadius, topLayerRadius, topLayerRadius, topLayerRadius, topLayerHeight, 64],
             deferBuffer: false
         });
-        // Posisi Center Y juga diturunkan (0.6 -> 0.55) agar tetap nempel di panggung merah
         this.models.stageWhiteTop = createModelMatrix({ translate: [0, 0.55, 0] });
 
-        // C. Mesh Dekorasi Trim (Cincin Emas Atas & Bawah)
+        // C. Mesh Dekorasi Trim (Cincin Emas)
         const trimRadius = stageRadius + 0.5; 
         const trimHeight = 0.5;
         this.meshes.stageTrim = createMesh(MeshUtils.generateEllipticalCylinder, {
             params: [trimRadius, trimRadius, trimRadius, trimRadius, trimHeight, 64],
             deferBuffer: false
         });
-        
-        // Posisi Trim Atas (di bibir panggung utama) - TETAP di 0.25 (Top=0.5)
         this.models.stageTrimTop = createModelMatrix({ translate: [0, 0.25, 0] });
-        // Posisi Trim Bawah (di dasar panggung)
         this.models.stageTrimBottom = createModelMatrix({ translate: [0, -3.25, 0] });
 
         // Hapus papan kayu lama
@@ -145,14 +139,13 @@ export class env extends BaseCharacter {
 
         // === DEKORASI PAGAR ===
         const fenceY = 0.5; 
-        const fenceOffset = 15.0; // Jarak pagar dari tribun
+        const fenceOffset = 15.0; 
         
         const posFenceFront = (HALF_DEPTH - standMarginZ) - fenceOffset;
         const posFenceBack = -(HALF_DEPTH - standMarginZ) + fenceOffset;
         const posFenceLeft = -(HALF_WIDTH - standMarginX) + fenceOffset;
         const posFenceRight = (HALF_WIDTH - standMarginX) - fenceOffset;
 
-        // Gap Negatif (Overlap) agar sudut tertutup
         const fenceGap = -2.0; 
         const fenceLengthLong = 2 * Math.abs(posFenceRight) - fenceGap;
         const fenceLengthShort = 2 * Math.abs(posFenceFront) - fenceGap;
@@ -408,6 +401,46 @@ export class env extends BaseCharacter {
         this.models.topFrameBeams.push(createModelMatrix({ translate: [-HALF_WIDTH, beamEndY, 0], rotate: [{ axis: 'x', angle: Math.PI / 2 }], scale: [1, CIRCUS_DEPTH, 1] }));
         this.models.topFrameBeams.push(createModelMatrix({ translate: [HALF_WIDTH, beamEndY, 0], rotate: [{ axis: 'x', angle: Math.PI / 2 }], scale: [1, CIRCUS_DEPTH, 1] }));
 
+        // C. CROSS BEAMS (DIAGONAL) - Rangka Silang di Atas
+        const diagLength = Math.hypot(CIRCUS_WIDTH, CIRCUS_DEPTH);
+        const diagAngle = Math.atan2(CIRCUS_DEPTH, CIRCUS_WIDTH);
+
+        // Diagonal 1 (Kiri Depan ke Kanan Belakang)
+        this.models.topFrameBeams.push(createModelMatrix({
+            translate: [0, beamEndY, 0],
+            rotate: [
+                { axis: 'y', angle: diagAngle },
+                { axis: 'z', angle: Math.PI / 2 }
+            ],
+            scale: [1, diagLength, 1]
+        }));
+
+        // Diagonal 2 (Kanan Depan ke Kiri Belakang)
+        this.models.topFrameBeams.push(createModelMatrix({
+            translate: [0, beamEndY, 0],
+            rotate: [
+                { axis: 'y', angle: -diagAngle },
+                { axis: 'z', angle: Math.PI / 2 }
+            ],
+            scale: [1, diagLength, 1]
+        }));
+
+        // D. CENTER POLE (TIANG TENGAH GANTUNG)
+        const poleRadius = 1.2; // Sedikit lebih kecil dari frame lain (2.0)
+        const poleHeight = roofPeakY - beamEndY; // Dari level balok ke puncak atap (85 - 55 = 30)
+        const poleCenterY = beamEndY + (poleHeight / 2); // Titik tengah batang
+
+        this.meshes.centerPole = createMesh(MeshUtils.generateEllipticalCylinder, {
+            params: [poleRadius, poleRadius, poleRadius, poleRadius, 1.0, 16], // Height 1, nanti di-scale
+            deferBuffer: false
+        });
+
+        this.models.centerPoles = [];
+        this.models.centerPoles.push(createModelMatrix({
+            translate: [0, poleCenterY, 0],
+            scale: [1, poleHeight, 1]
+        }));
+
         this.models.wallCrossBeams = []; 
     }
 
@@ -529,6 +562,11 @@ export class env extends BaseCharacter {
         }
         for (const frameModel of this.models.topFrameBeams) {
             drawObject(this.meshes.topFrameBeam.solid.buffers, frameModel, ironColor, GL.TRIANGLES);
+        }
+
+        // Gambar Center Pole
+        for (const pole of this.models.centerPoles) {
+            drawObject(this.meshes.centerPole.solid.buffers, pole, ironColor, GL.TRIANGLES);
         }
     }
 }
