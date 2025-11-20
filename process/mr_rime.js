@@ -10,6 +10,9 @@ import { GL, attribs } from '../main.js'
 export class mr_rime extends BaseCharacter {
     constructor() {
         super();
+        this.xOffset = 0;
+        this.yOffset = 0;
+        this.zOffset = 0;
 
         const wingsHatCurve = Curves.cubicBezier3D(
             [0, 0, 0],   // p0 (awal)
@@ -531,7 +534,7 @@ export class mr_rime extends BaseCharacter {
         const timeInCycle = idleTime % TOTAL_CYCLE_TIME;
 
         // --- Base Values ---
-        const [baseX, baseY, baseZ] = this.baseHipPos;
+        const [baseX, baseY, baseZ] = [this.baseHipPos[0], this.baseHipPos[1] + 3, this.baseHipPos[2]];
         const walkDistance = 4.0;
 
         // Pose statis tangan kanan (saat tidak dipakai)

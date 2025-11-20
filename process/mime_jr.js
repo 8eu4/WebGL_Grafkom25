@@ -380,8 +380,8 @@ export class mime_jr extends BaseCharacter {
 
     animate(time) {
 
-        const yOffset = 0.15;
-        const xOffset = -20;
+        const yOffset = 3.3;
+        const xOffset = 0;
         const zOffset = 0;
 
         

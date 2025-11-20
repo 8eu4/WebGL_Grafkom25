@@ -82,9 +82,9 @@ function main() {
 
 
     environment.animate(time); environment.drawObject();
-    // mime_jr1.animate(time); mime_jr1.drawObject();
-    // mr_mime1.animate(time); mr_mime1.drawObject(); 
-    mr_rime1.animate(time); mr_rime1.drawObject(); 
+    mime_jr1.xOffset = -50; mime_jr1.animate(time); mime_jr1.drawObject();
+    // mr_mime1.xOffset = 20; mr_mime1.animate(time); mr_mime1.drawObject(); 
+    // mr_rime1.xOffset = 20; mr_rime1.animate(time); mr_rime1.drawObject(); 
 
 
     GL.flush();
@@ -98,17 +98,10 @@ window.addEventListener("load", main);
 function otherFactor() {
   // REVIEW ---------- Camera ----------
   camera = {
-    // Nilai SAAT INI (yang digambar di layar)
-    yaw: 0,
-    pitch: Math.PI/18,
-    radius: 5.0,
-    target: [0, 6, 15],
-
-    // Nilai TUJUAN (kemana mouse menyuruh kamera pergi)
-    destYaw: 0,
-    destPitch: Math.PI/18,
-    destRadius: 5.0,
-    destTarget: [0, 6, 15]
+    yaw: 0, // rotasi horizontal (sekitar Y axis)
+    pitch: 0, // rotasi vertical (sekitar X axis)
+    radius: 15.0, // jarak kamera dari target
+    target: [0, 0, 0], // pusat pandangan
   };
   let isDragging = false;
   let lastX = 0,
@@ -121,53 +114,43 @@ function otherFactor() {
   CANVAS.addEventListener("mouseup", () => {
     isDragging = false;
   });
-  // --- Event Listener Mouse Move ---
   CANVAS.addEventListener("mousemove", (e) => {
     if (!isDragging) return;
     const dx = e.clientX - lastX;
     const dy = e.clientY - lastY;
     lastX = e.clientX;
-    lastY = e.clientY;
-
-    // SENSITIVITY (Sesuaikan jika terlalu cepat/lambat)
-    const rotSpeed = 0.0025;
-    const panSpeed = 0.002 * camera.radius;
+    lastY = e.clientY; // DIUBAH: Gunakan e.buttons === 2 (klik kanan) untuk PAN
 
     if (e.buttons === 2) {
-      // --- PAN MODE (Klik Kanan) ---
-      // Kita hitung arah berdasarkan posisi visual (yaw/pitch) agar intuitif
+      // --- PAN MODE ---
+      const panSpeed = 0.002 * camera.radius; // hitung basis vektor relatif kamera
+
       const cosPitch = Math.cos(camera.pitch);
       const sinPitch = Math.sin(camera.pitch);
       const cosYaw = Math.cos(camera.yaw);
       const sinYaw = Math.sin(camera.yaw);
 
       const right = [cosYaw, 0, -sinYaw];
-      const up = [-sinPitch * sinYaw, cosPitch, -sinPitch * cosYaw];
+      const up = [-sinPitch * sinYaw, cosPitch, -sinPitch * cosYaw]; // geser target
 
-      // Update DESTINATION target
-      camera.destTarget[0] -= dx * panSpeed * right[0] - dy * panSpeed * up[0];
-      camera.destTarget[1] -= dx * panSpeed * right[1] - dy * panSpeed * up[1];
-      camera.destTarget[2] -= dx * panSpeed * right[2] - dy * panSpeed * up[2];
+      camera.target[0] -= dx * panSpeed * right[0] - dy * panSpeed * up[0];
+      camera.target[1] -= dx * panSpeed * right[1] - dy * panSpeed * up[1];
+      camera.target[2] -= dx * panSpeed * right[2] - dy * panSpeed * up[2];
 
     } else if (e.buttons === 1) {
       // --- ORBIT MODE (Klik Kiri) ---
-      // Update DESTINATION angle
-      camera.destYaw -= dx * rotSpeed;
-      camera.destPitch += dy * rotSpeed;
-
-      // Clamp pitch destination
-      camera.destPitch = Math.max(
+      camera.yaw -= dx * 0.005;
+      camera.pitch += dy * 0.005;
+      camera.pitch = Math.max(
         -Math.PI / 2 + 0.1,
-        Math.min(Math.PI / 2 - 0.1, camera.destPitch)
+        Math.min(Math.PI / 2 - 0.1, camera.pitch)
       );
     }
   });
-
-  // --- Event Listener Wheel (Zoom Smooth) ---
   CANVAS.addEventListener("wheel", (e) => {
-    camera.destRadius += e.deltaY * 0.01;
-    camera.destRadius = Math.max(1.0, Math.min(1000.0, camera.destRadius));
-  });
+    camera.radius += e.deltaY * 0.01; // camera.radius = Math.max(1.0, Math.min(20.0, camera.radius));
+  }); // BARU: Tambahkan listener untuk keyboard (W, A, S, D, Shift, Spasi)
+
   window.addEventListener("keydown", (e) => {
     keyState[e.key.toLowerCase()] = true; // Mencegah scroll halaman saat spasi atau wasd ditekan
     if (["w", "a", "s", "d", " ", "shift", "capslock"].includes(e.key.toLowerCase())) {
@@ -319,64 +302,58 @@ function otherFactor() {
 
 // FUNGSI GERAK
 function updateCameraMovement() {
-  const moveSpeed = 0.15;
-  const sinYaw = Math.sin(camera.yaw); // Pakai yaw visual biar arahnya sesuai layar
+  const moveSpeed = 0.15
+  const sinYaw = Math.sin(camera.yaw);
   const cosYaw = Math.cos(camera.yaw);
 
   const move = vec3.fromValues(0, 0, 0);
+
   let sprint = keyState["capslock"] ? 4 : 1;
 
-  if (keyState["w"]) vec3.add(move, move, [-sinYaw, 0, -cosYaw]);
-  if (keyState["s"]) vec3.add(move, move, [sinYaw, 0, cosYaw]);
-  if (keyState["a"]) vec3.add(move, move, [-cosYaw, 0, sinYaw]);
-  if (keyState["d"]) vec3.add(move, move, [cosYaw, 0, -sinYaw]);
-  if (keyState[" "]) vec3.add(move, move, [0, 1, 0]);
-  if (keyState["shift"]) vec3.add(move, move, [0, -1, 0]);
+  //Keybind
+  if (keyState["w"]) {
+    vec3.add(move, move, [-sinYaw, 0, -cosYaw]);
+  }
+  if (keyState["s"]) {
+    vec3.add(move, move, [sinYaw, 0, cosYaw]);
+  }
+
+  if (keyState["a"]) {
+    vec3.add(move, move, [-cosYaw, 0, sinYaw]);
+  }
+  if (keyState["d"]) {
+    vec3.add(move, move, [cosYaw, 0, -sinYaw]);
+  }
+
+  if (keyState[" "]) {
+    vec3.add(move, move, [0, 1, 0]);
+  }
+  if (keyState["shift"]) {
+    vec3.add(move, move, [0, -1, 0]);
+  }
 
   if (move[0] !== 0 || move[1] !== 0 || move[2] !== 0) {
     vec3.normalize(move, move);
-    vec3.scale(move, move, moveSpeed * sprint);
-    
-    // Ubah DESTINATION target
-    vec3.add(camera.destTarget, camera.destTarget, move);
+    vec3.scale(move, move, moveSpeed*sprint);
+    vec3.add(camera.target, camera.target, move);
   }
 }
 
 //Dont mind this!
 function cameraUpdate() {
-  // --- SETTING KEMULUSAN ---
-  // Nilai 0.0 - 1.0
-  // 0.05 = Sangat mulus, seperti ada beratnya (Cinematic), tapi delay terasa.
-  // 0.2  = Cukup mulus, responsif (Recommended buat Game).
-  // 0.5  = Cepat, sedikit kaku.
-  // 1.0  = Instan (Seperti kodemu yang lama).
-  const smoothness = 0.12; 
-
-  // --- RUMUS LERP (Linear Interpolation) ---
-  // Current = Current + (Target - Current) * smoothness
-  
-  camera.yaw    += (camera.destYaw - camera.yaw) * smoothness;
-  camera.pitch  += (camera.destPitch - camera.pitch) * smoothness;
-  camera.radius += (camera.destRadius - camera.radius) * smoothness;
-  
-  // Lerp untuk posisi target (X, Y, Z)
-  camera.target[0] += (camera.destTarget[0] - camera.target[0]) * smoothness;
-  camera.target[1] += (camera.destTarget[1] - camera.target[1]) * smoothness;
-  camera.target[2] += (camera.destTarget[2] - camera.target[2]) * smoothness;
-
-  // --- HITUNG POSISI KAMERA ---
-  // Gunakan nilai camera.yaw/pitch/radius yang sudah di-smooth-kan
   const eye = [
-    camera.target[0] + camera.radius * Math.cos(camera.pitch) * Math.sin(camera.yaw),
+    camera.target[0] +
+    camera.radius * Math.cos(camera.pitch) * Math.sin(camera.yaw),
     camera.target[1] + camera.radius * Math.sin(camera.pitch),
-    camera.target[2] + camera.radius * Math.cos(camera.pitch) * Math.cos(camera.yaw),
+    camera.target[2] +
+    camera.radius * Math.cos(camera.pitch) * Math.cos(camera.yaw),
   ];
 
   const up = [0, 1, 0];
 
   view = mat4.create();
-  mat4.lookAt(view, eye, camera.target, up); 
+  mat4.lookAt(view, eye, camera.target, up); // update posisi kamera
 
-  GL.uniform3fv(uViewPos, eye);
+  GL.uniform3fv(uViewPos, eye); // Bersihin layar
   GL.clear(GL.COLOR_BUFFER_BIT | GL.DEPTH_BUFFER_BIT);
 }
