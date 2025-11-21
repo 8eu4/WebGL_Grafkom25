@@ -170,7 +170,7 @@ function otherFactor() {
   });
   window.addEventListener("keydown", (e) => {
     keyState[e.key.toLowerCase()] = true; // Mencegah scroll halaman saat spasi atau wasd ditekan
-    if (["w", "a", "s", "d", " ", "shift", "capslock"].includes(e.key.toLowerCase())) {
+    if (["w", "a", "s", "d", " ", "shift", "capslock", "alt"].includes(e.key.toLowerCase())) {
       e.preventDefault();
     }
   });
@@ -324,14 +324,14 @@ function updateCameraMovement() {
   const cosYaw = Math.cos(camera.yaw);
 
   const move = vec3.fromValues(0, 0, 0);
-  let sprint = keyState["capslock"] ? 4 : 1;
+  let sprint = keyState["shift"] ? 4 : 1;
 
   if (keyState["w"]) vec3.add(move, move, [-sinYaw, 0, -cosYaw]);
   if (keyState["s"]) vec3.add(move, move, [sinYaw, 0, cosYaw]);
   if (keyState["a"]) vec3.add(move, move, [-cosYaw, 0, sinYaw]);
   if (keyState["d"]) vec3.add(move, move, [cosYaw, 0, -sinYaw]);
   if (keyState[" "]) vec3.add(move, move, [0, 1, 0]);
-  if (keyState["shift"]) vec3.add(move, move, [0, -1, 0]);
+  if (keyState["alt"]) vec3.add(move, move, [0, -1, 0]);
 
   if (move[0] !== 0 || move[1] !== 0 || move[2] !== 0) {
     vec3.normalize(move, move);
